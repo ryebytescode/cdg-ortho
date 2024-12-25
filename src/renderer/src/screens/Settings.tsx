@@ -1,38 +1,43 @@
 import { Button, Group, Stack, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { useEffect } from 'react'
+import { notifications } from '@mantine/notifications'
+import { type Config, initialValues } from '@renderer/helpers/config'
+import { LocalStorage } from '@renderer/helpers/localStorage'
 import { PageView } from '../components/PageView'
 
-interface Fields {
-  appDataFolder: string
-  patientDataFolder: string
+type Fields = {
+  [key in keyof typeof Config]: string
 }
 
 export default function Settings() {
-  const { setFieldValue, key, getInputProps } = useForm<Fields>()
+  const { setFieldValue, key, getInputProps, onSubmit } = useForm<Fields>({
+    mode: 'uncontrolled',
+    initialValues,
+  })
 
-  const handleFolderSelection = async (type: 'app' | 'patient') => {
+  const handleFolderSelection = async (type: keyof typeof Config) => {
     const folderPath = await window.api.openFolderSelectorDialog()
 
     if (!folderPath) return
 
-    if (type === 'app') setFieldValue('appDataFolder', folderPath)
-    else setFieldValue('patientDataFolder', folderPath)
+    setFieldValue(type, folderPath)
   }
 
-  useEffect(() => {
-    ;(async () => {
-      const configFolder = await window.api.getConfigFolder()
-      const homeFolder = await window.api.getHomeFolder()
+  const handleSubmit = (fields: Fields) => {
+    for (const [key, value] of Object.entries(fields)) {
+      LocalStorage.set(key, value)
+    }
 
-      setFieldValue('appDataFolder', configFolder)
-      setFieldValue('patientDataFolder', homeFolder)
-    })()
-  }, [setFieldValue])
+    notifications.show({
+      title: 'Success!',
+      message: 'Settings changed.',
+      color: 'green',
+    })
+  }
 
   return (
     <PageView title="Settings">
-      <form>
+      <form onSubmit={onSubmit(handleSubmit)}>
         <Stack>
           <Group align="flex-end">
             <TextInput
@@ -41,10 +46,13 @@ export default function Settings() {
               placeholder="Click 'Select'"
               readOnly
               flex={1}
+              required
               key={key('appDataFolder')}
               {...getInputProps('appDataFolder')}
             />
-            <Button onClick={() => handleFolderSelection('app')}>Select</Button>
+            <Button onClick={() => handleFolderSelection('appDataFolder')}>
+              Select
+            </Button>
           </Group>
           <Group align="flex-end">
             <TextInput
@@ -53,14 +61,17 @@ export default function Settings() {
               placeholder="Click 'Select'"
               readOnly
               flex={1}
+              required
               key={key('patientDataFolder')}
               {...getInputProps('patientDataFolder')}
             />
-            <Button onClick={() => handleFolderSelection('patient')}>
+            <Button onClick={() => handleFolderSelection('patientDataFolder')}>
               Select
             </Button>
           </Group>
-          <Button mt="md">Save</Button>
+          <Button mt="md" type="submit">
+            Save
+          </Button>
         </Stack>
       </form>
     </PageView>
