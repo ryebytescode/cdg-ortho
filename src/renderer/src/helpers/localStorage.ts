@@ -46,6 +46,8 @@ export const LocalStorage = {
     key: string,
     value: string | number | object | (string | number | object)[]
   ) {
+    if (typeof value === 'undefined' || value === null || value === '') return
+
     if (typeof value === 'object' || Array.isArray(value)) {
       localStorage.setItem(key, JSON.stringify(value))
       return
