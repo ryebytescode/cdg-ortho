@@ -1,0 +1,45 @@
+{
+	"name": "@cdg/ortho",
+	"version": "1.0.0",
+	"description": "A desktop app for managing CDG orthodontic patients",
+	"main": "./out/main/index.js",
+	"author": "Gin Ryu Rabino",
+	"homepage": "https://electron-vite.org",
+	"scripts": {
+		"lint": "biome check --write .",
+		"format": "biome format --write .",
+		"typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
+		"typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
+		"typecheck": "yarn typecheck:node && yarn typecheck:web",
+		"start": "electron-vite preview",
+		"dev": "electron-vite dev",
+		"build": "yarn typecheck && electron-vite build",
+		"postinstall": "electron-builder install-app-deps",
+		"build:unpack": "yarn build && electron-builder --dir",
+		"build:win": "yarn build && electron-builder --win",
+		"build:mac": "electron-vite build && electron-builder --mac",
+		"build:linux": "electron-vite build && electron-builder --linux"
+	},
+	"dependencies": {
+		"@electron-toolkit/preload": "^3.0.1",
+		"@electron-toolkit/utils": "^3.0.0",
+		"electron-updater": "^6.3.9"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"@electron-toolkit/tsconfig": "^1.0.1",
+		"@types/node": "^22.10.2",
+		"@types/react": "^19.0.2",
+		"@types/react-dom": "^19.0.2",
+		"@vitejs/plugin-react": "^4.3.4",
+		"electron": "^33.2.1",
+		"electron-builder": "^25.1.8",
+		"electron-vite": "^2.3.0",
+		"lefthook": "^1.10.0",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"typescript": "^5.7.2",
+		"vite": "^6.0.5"
+	},
+	"packageManager": "yarn@4.5.3"
+}
