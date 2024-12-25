@@ -23,7 +23,15 @@
 	"dependencies": {
 		"@electron-toolkit/preload": "^3.0.1",
 		"@electron-toolkit/utils": "^3.0.0",
-		"electron-updater": "^6.3.9"
+		"@mantine/core": "^7.14.3",
+		"@mantine/dates": "^7.14.3",
+		"@mantine/form": "^7.14.3",
+		"@mantine/hooks": "^7.14.3",
+		"@tabler/icons-react": "^3.24.0",
+		"dayjs": "^1.11.13",
+		"electron-updater": "^6.3.9",
+		"react-imask": "^7.6.1",
+		"react-router": "^7.0.2"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
