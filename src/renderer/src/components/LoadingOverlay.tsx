@@ -6,9 +6,9 @@ interface LoadingOverlayHandleProps {
   hide: () => void
 }
 
-export const LoadingOverlay = ({
+export function LoadingOverlay({
   ref,
-}: { ref: Ref<LoadingOverlayHandleProps> }) => {
+}: { ref: Ref<LoadingOverlayHandleProps> }) {
   const [isVisible, setIsVisible] = useState(false)
 
   useImperativeHandle(ref, () => ({
