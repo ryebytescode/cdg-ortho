@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: ortho2
+productName: CDG Ortho
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: ortho2
+  executableName: CDG Ortho
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
