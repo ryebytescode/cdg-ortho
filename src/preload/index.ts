@@ -1,8 +1,21 @@
 import { electronAPI } from '@electron-toolkit/preload'
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 
 // Custom APIs for renderer
-const api = {}
+const api = {
+  openFolderSelectorDialog: async () => {
+    return await ipcRenderer.invoke('open-folder-selector-dialog')
+  },
+  processCreatePatient: async () => {
+    return await ipcRenderer.invoke('process-create-patient')
+  },
+  getHomeFolder: async () => {
+    return await ipcRenderer.invoke('get-home-folder')
+  },
+  getConfigFolder: async () => {
+    return await ipcRenderer.invoke('get-config-folder')
+  },
+}
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise

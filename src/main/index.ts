@@ -1,7 +1,8 @@
 import { join } from 'node:path'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import { BrowserWindow, app, ipcMain, shell } from 'electron'
+import { BrowserWindow, app, shell } from 'electron'
 import icon from '../../resources/icon.png?asset'
+import { setListeners } from './actions'
 
 function createWindow(): void {
   // Create the browser window.
@@ -40,7 +41,7 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.cdg.ortho')
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -49,9 +50,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
-
+  setListeners()
   createWindow()
 
   app.on('activate', () => {
