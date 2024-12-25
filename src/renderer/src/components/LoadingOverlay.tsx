@@ -1,12 +1,14 @@
 import { LoadingOverlay as MLoadingOverlay, Transition } from '@mantine/core'
-import { forwardRef, useImperativeHandle, useState } from 'react'
+import { type Ref, useImperativeHandle, useState } from 'react'
 
-interface LoadingOverlayProps {
+interface LoadingOverlayHandleProps {
   show: () => void
   hide: () => void
 }
 
-export const LoadingOverlay = forwardRef<LoadingOverlayProps>((_, ref) => {
+export const LoadingOverlay = ({
+  ref,
+}: { ref: Ref<LoadingOverlayHandleProps> }) => {
   const [isVisible, setIsVisible] = useState(false)
 
   useImperativeHandle(ref, () => ({
@@ -34,4 +36,4 @@ export const LoadingOverlay = forwardRef<LoadingOverlayProps>((_, ref) => {
       )}
     </Transition>
   )
-})
+}
