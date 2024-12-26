@@ -6,3 +6,5 @@ out
 .env
 migrations
 data
+.vscode
+.yarn
