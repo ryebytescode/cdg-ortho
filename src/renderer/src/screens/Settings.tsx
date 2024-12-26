@@ -1,21 +1,18 @@
 import { Button, Group, Stack, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
-import { type Config, initialValues } from '@renderer/helpers/config'
-import { LocalStorage } from '@renderer/helpers/localStorage'
+import { Config, initialValues } from '@renderer/helpers/config'
+import { useNavigate } from 'react-router'
 import { PageView } from '../components/PageView'
 
-type Fields = {
-  [key in keyof typeof Config]: string
-}
-
 export default function Settings() {
-  const { setFieldValue, key, getInputProps, onSubmit } = useForm<Fields>({
+  const navigate = useNavigate()
+  const { setFieldValue, key, getInputProps, onSubmit } = useForm<AppConfig>({
     mode: 'uncontrolled',
     initialValues,
   })
 
-  const handleFolderSelection = async (type: keyof typeof Config) => {
+  const handleFolderSelection = async (type: keyof AppConfig) => {
     const folderPath = await window.api.openFolderSelectorDialog()
 
     if (!folderPath) return
@@ -23,37 +20,30 @@ export default function Settings() {
     setFieldValue(type, folderPath)
   }
 
-  const handleSubmit = (fields: Fields) => {
-    for (const [key, value] of Object.entries(fields)) {
-      LocalStorage.set(key, value)
+  const handleSubmit = async (fields: AppConfig) => {
+    const result = await Config.setAll(fields)
+
+    if (result) {
+      notifications.show({
+        title: 'Success!',
+        message: 'Settings changed.',
+        color: 'green',
+      })
+    } else {
+      notifications.show({
+        title: 'Error',
+        message: 'Cannot change the settings.',
+        color: 'red',
+      })
     }
 
-    notifications.show({
-      title: 'Success!',
-      message: 'Settings changed.',
-      color: 'green',
-    })
+    navigate('/', { replace: true })
   }
 
   return (
     <PageView title="Settings">
       <form onSubmit={onSubmit(handleSubmit)}>
         <Stack>
-          <Group align="flex-end">
-            <TextInput
-              label="App data folder location"
-              description="This is where the app's configuration is stored."
-              placeholder="Click 'Select'"
-              readOnly
-              flex={1}
-              required
-              key={key('appDataFolder')}
-              {...getInputProps('appDataFolder')}
-            />
-            <Button onClick={() => handleFolderSelection('appDataFolder')}>
-              Select
-            </Button>
-          </Group>
           <Group align="flex-end">
             <TextInput
               label="Patient data folder location"

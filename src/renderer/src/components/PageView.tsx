@@ -1,19 +1,20 @@
 import { ActionIcon, Container, Group, Stack, Title } from '@mantine/core'
 import { IconChevronLeft } from '@tabler/icons-react'
 import type { PropsWithChildren } from 'react'
-import { Link } from 'react-router'
+import { useNavigate } from 'react-router'
 
 interface PageViewProps extends PropsWithChildren {
   title: string
-  backTo?: string
 }
 
-export function PageView({ title, backTo, children }: PageViewProps) {
+export function PageView({ title, children }: PageViewProps) {
+  const navigate = useNavigate()
+
   return (
-    <Container size="sm" py="xl">
+    <Container size="md" py="xl">
       <Stack>
         <Group gap="xl">
-          <ActionIcon component={Link} to={backTo ?? '/'}>
+          <ActionIcon onClick={() => navigate(-1)}>
             <IconChevronLeft />
           </ActionIcon>
           <Title order={2}>{title}</Title>

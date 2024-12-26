@@ -9,32 +9,19 @@ import {
   Select,
   Stack,
   TextInput,
-  Textarea,
 } from '@mantine/core'
-import { DateInput, type DateValue } from '@mantine/dates'
+import { DateInput } from '@mantine/dates'
 import {
   type FormValidateInput,
   type UseFormReturnType,
   useForm,
 } from '@mantine/form'
+import { notifications } from '@mantine/notifications'
 import { type ComponentRef, useRef } from 'react'
 import { IMaskInput } from 'react-imask'
 import { LoadingOverlay } from '../components/LoadingOverlay'
 import { PageView } from '../components/PageView'
 import patterns from '../helpers/patterns'
-
-interface Fields {
-  patientType: string
-  firstName: string
-  lastName: string
-  middleName: string
-  suffix: string
-  birthdate: DateValue
-  gender: string
-  phone: string
-  address: string
-  entryDate: DateValue
-}
 
 const patientTypes: SegmentedControlItem[] = [
   { label: 'New patient', value: 'new' },
@@ -54,7 +41,7 @@ const suffixes: ComboboxData = [
   { label: 'IV', value: 'IV' },
 ]
 
-const initialValues: Fields = {
+const initialValues: NewPatientFields = {
   patientType: 'new',
   firstName: '',
   lastName: '',
@@ -67,7 +54,7 @@ const initialValues: Fields = {
   entryDate: null,
 }
 
-const validators: FormValidateInput<Fields> = {
+const validators: FormValidateInput<NewPatientFields> = {
   firstName: (value) =>
     value.length < 2 ? 'First name must have at least 2 letters.' : null,
   lastName: (value) =>
@@ -76,22 +63,38 @@ const validators: FormValidateInput<Fields> = {
 }
 
 export default function NewPatient() {
-  console.log('NewPatient')
-
-  const form = useForm<Fields>({
+  const form = useForm<NewPatientFields>({
     mode: 'uncontrolled',
     initialValues,
     validate: validators,
   })
   const loadingOverlayRef = useRef<ComponentRef<typeof LoadingOverlay>>(null)
 
-  const handleSubmit = async (values: Fields) => {
+  const handleSubmit = async (fields: NewPatientFields) => {
     loadingOverlayRef.current?.show()
-    console.log(values)
+
+    const result = await window.api.createPatientRecord(fields)
+
+    if (result) {
+      notifications.show({
+        title: 'Success!',
+        message: 'Patient record created.',
+        color: 'green',
+      })
+    } else {
+      notifications.show({
+        title: 'Error',
+        message: 'Cannot created patient record.',
+        color: 'red',
+      })
+    }
+
+    form.reset()
+    loadingOverlayRef.current?.hide()
   }
 
   return (
-    <PageView title="Add patient" backTo="/">
+    <PageView title="Add patient">
       <LoadingOverlay ref={loadingOverlayRef} />
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
@@ -187,7 +190,10 @@ export default function NewPatient() {
 function EnyeSelector({
   form,
   field,
-}: { form: UseFormReturnType<Fields>; field: keyof Fields }) {
+}: {
+  form: UseFormReturnType<NewPatientFields>
+  field: keyof NewPatientFields
+}) {
   return (
     <Select
       data={[
