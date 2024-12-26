@@ -1,33 +1,23 @@
-import { LocalStorage } from './localStorage'
-
 export const Config = {
-  appDataFolder: {
-    get: async () => {
-      if (LocalStorage.has('appDataFolder')) {
-        return LocalStorage.get('appDataFolder')
-      }
+  get: async (key: keyof AppConfig) => {
+    const settings = await window.api.getSettings()
 
-      return await window.api.getConfigFolder()
-    },
-    set: (path: string) => {
-      LocalStorage.set('appDataFolder', path)
-    },
+    if (settings?.[key]) return settings[key]
+
+    return null
   },
-
-  patientDataFolder: {
-    get: async () => {
-      if (LocalStorage.has('patientDataFolder')) {
-        return LocalStorage.get('patientDataFolder')
-      }
-
-      return await window.api.getHomeFolder()
-    },
-    set: (path: string) => {
-      LocalStorage.set('patientDataFolder', path)
-    },
+  getAll: async () => {
+    return await window.api.getSettings()
+  },
+  set: async (key: keyof AppConfig, value: string) => {
+    return await window.api.saveSettings((prevSettings) => ({
+      ...prevSettings,
+      [key]: value,
+    }))
+  },
+  setAll: async (settings: AppConfig) => {
+    return await window.api.saveSettings(settings)
   },
 }
 
-export const initialValues = await Promise.all(
-  Object.entries(Config).map(async ([key, value]) => [key, await value.get()])
-).then((entries) => Object.fromEntries(entries))
+export const initialValues = await Config.getAll()
