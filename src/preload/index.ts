@@ -6,14 +6,28 @@ const api = {
   openFolderSelectorDialog: async () => {
     return await ipcRenderer.invoke('open-folder-selector-dialog')
   },
-  processCreatePatient: async () => {
-    return await ipcRenderer.invoke('process-create-patient')
+
+  createPatientRecord: async (fields: NewPatientFields) => {
+    return await ipcRenderer.invoke('create-patient-record', fields)
   },
-  getHomeFolder: async () => {
-    return await ipcRenderer.invoke('get-home-folder')
+  getPatients: async () => {
+    return await ipcRenderer.invoke('get-patients')
   },
-  getConfigFolder: async () => {
-    return await ipcRenderer.invoke('get-config-folder')
+
+  getSettings: async () => {
+    return await ipcRenderer.invoke('get-settings')
+  },
+  saveSettings: async (
+    settings: AppConfig | ((prevSettings: AppConfig) => AppConfig)
+  ) => {
+    let _settings = settings
+
+    if (typeof settings === 'function') {
+      const appSettings = await ipcRenderer.invoke('get-settings')
+      _settings = settings(appSettings ?? {})
+    }
+
+    return await ipcRenderer.invoke('save-settings', _settings)
   },
 }
 

@@ -1,13 +1,25 @@
-import { join } from 'node:path'
+import path, { dirname, join } from 'node:path'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { BrowserWindow, app, shell } from 'electron'
+import log from 'electron-log/main'
 import icon from '../../resources/icon.png?asset'
 import { setListeners } from './actions'
+
+// Init logger
+log.initialize()
+log.transports.file.maxSize = 5242880 // 5 mb
+log.transports.file.resolvePathFn = (vars) =>
+  path.join(
+    // biome-ignore lint/style/noNonNullAssertion:
+    dirname(app.getPath('exe')),
+    'logs',
+    vars.fileName!
+  )
 
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
+    width: 1240,
     height: 670,
     show: false,
     autoHideMenuBar: true,
@@ -58,6 +70,8 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+
+  log.info('App started')
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -67,6 +81,8 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+
+  log.info('App closed')
 })
 
 // In this file you can include the rest of your app"s specific main process

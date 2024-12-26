@@ -1,3 +1,5 @@
+/// <reference types="../shared/types/config" />
+
 import type { ElectronAPI } from '@electron-toolkit/preload'
 
 declare global {
@@ -5,9 +7,12 @@ declare global {
     electron: ElectronAPI
     api: {
       openFolderSelectorDialog: () => Promise<string | null>
-      processCreatePatient: () => void
-      getHomeFolder: () => string
-      getConfigFolder: () => string
+      createPatientRecord: (fields: NewPatientFields) => Promise<boolean>
+      getPatients: () => Promise<Patient[]>
+      getSettings: () => Promise<AppConfig>
+      saveSettings: (
+        settings: AppConfig | ((prevSettings: AppConfig) => AppConfig)
+      ) => Promise<boolean>
     }
   }
 }
