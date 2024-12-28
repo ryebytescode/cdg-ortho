@@ -1,6 +1,5 @@
 import {
   Button,
-  Collapse,
   type ComboboxData,
   Group,
   InputBase,
@@ -17,16 +16,12 @@ import {
   useForm,
 } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
-import { type ComponentRef, useRef } from 'react'
+import { type ComponentRef, useEffect, useRef } from 'react'
 import { IMaskInput } from 'react-imask'
+import { useNavigate, useParams } from 'react-router'
 import { LoadingOverlay } from '../components/LoadingOverlay'
 import { PageView } from '../components/PageView'
 import patterns from '../helpers/patterns'
-
-const patientTypes: SegmentedControlItem[] = [
-  { label: 'New patient', value: 'new' },
-  { label: 'Old patient', value: 'old' },
-]
 
 const gender: SegmentedControlItem[] = [
   { label: 'Male', value: 'male' },
@@ -41,8 +36,7 @@ const suffixes: ComboboxData = [
   { label: 'IV', value: 'IV' },
 ]
 
-const initialValues: NewPatientFields = {
-  patientType: 'new',
+const initialValues: EditPatientFields = {
   firstName: '',
   lastName: '',
   middleName: '',
@@ -51,10 +45,9 @@ const initialValues: NewPatientFields = {
   gender: 'male',
   phone: '',
   address: '',
-  entryDate: null,
 }
 
-const validators: FormValidateInput<NewPatientFields> = {
+const validators: FormValidateInput<EditPatientFields> = {
   firstName: (value) =>
     value.length < 2 ? 'First name must have at least 2 letters.' : null,
   lastName: (value) =>
@@ -62,57 +55,59 @@ const validators: FormValidateInput<NewPatientFields> = {
   phone: (value) => (patterns.phone.test(value) ? null : 'Invalid format.'),
 }
 
-export default function NewPatient() {
-  const form = useForm<NewPatientFields>({
+export default function EditPatient() {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const form = useForm<EditPatientFields>({
     mode: 'uncontrolled',
     initialValues,
     validate: validators,
   })
   const loadingOverlayRef = useRef<ComponentRef<typeof LoadingOverlay>>(null)
 
-  const handleSubmit = async (fields: NewPatientFields) => {
+  const handleSubmit = async (fields: EditPatientFields) => {
     loadingOverlayRef.current?.show()
 
-    const result = await window.api.createPatientRecord(fields)
+    const result = await window.api.updatePatientRecord(fields)
 
     if (result) {
       notifications.show({
         title: 'Success!',
-        message: 'Patient record created.',
+        message: 'Patient record updated.',
         color: 'green',
       })
     } else {
       notifications.show({
         title: 'Error',
-        message: 'Cannot create patient record.',
+        message: 'Cannot update patient record.',
         color: 'red',
       })
     }
 
-    form.reset()
-    loadingOverlayRef.current?.hide()
+    navigate(`/patient/${id}`)
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(() => {
+    if (id) {
+      ;(async () => {
+        const result = await window.api.getPatientProfile(id)
+
+        if (result) {
+          form.setValues({
+            ...result,
+            birthdate: new Date(result.birthdate),
+          })
+        }
+      })()
+    }
+  }, [])
+
   return (
-    <PageView title="Add patient">
+    <PageView title="Edit patient" backTo={`/patient/${id}`}>
       <LoadingOverlay ref={loadingOverlayRef} />
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
-          <SegmentedControl
-            data={patientTypes}
-            key={form.key('patientType')}
-            {...form.getInputProps('patientType')}
-          />
-          <Collapse in={form.getValues().patientType === 'old'}>
-            <DateInput
-              label="Date of entry"
-              placeholder="Pick a date"
-              required={form.getValues().patientType === 'old'}
-              maxDate={new Date()}
-              key={form.key('entryDate')}
-              {...form.getInputProps('entryDate')}
-            />
-          </Collapse>
           <Group grow>
             <TextInput
               label="First name"
@@ -181,7 +176,7 @@ export default function NewPatient() {
             {...form.getInputProps('address')}
           />
           <Button type="submit" mt="md">
-            Create record
+            Edit record
           </Button>
         </Stack>
       </form>
@@ -193,8 +188,8 @@ function EnyeSelector({
   form,
   field,
 }: {
-  form: UseFormReturnType<NewPatientFields>
-  field: keyof NewPatientFields
+  form: UseFormReturnType<EditPatientFields>
+  field: keyof EditPatientFields
 }) {
   return (
     <Select

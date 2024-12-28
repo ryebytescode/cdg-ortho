@@ -5,16 +5,21 @@ import { useNavigate } from 'react-router'
 
 interface PageViewProps extends PropsWithChildren {
   title: string
+  backTo?: string
 }
 
-export function PageView({ title, children }: PageViewProps) {
+export function PageView({ title, children, backTo }: PageViewProps) {
   const navigate = useNavigate()
 
   return (
-    <Container size="md" py="xl">
+    <Container size="sm" py="xl">
       <Stack>
         <Group gap="xl">
-          <ActionIcon onClick={() => navigate(-1)}>
+          <ActionIcon
+            onClick={() => {
+              backTo ? navigate(backTo) : navigate(-1)
+            }}
+          >
             <IconChevronLeft />
           </ActionIcon>
           <Title order={2}>{title}</Title>

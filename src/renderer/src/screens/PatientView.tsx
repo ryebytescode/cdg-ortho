@@ -1,23 +1,26 @@
 import { Tabs, rem } from '@mantine/core'
 import { Profile } from '@renderer/components/Profile'
+import { Transaction } from '@renderer/components/Transaction'
 import {
   IconDatabaseDollar,
   IconLibraryPhoto,
   IconUser,
 } from '@tabler/icons-react'
+import { useState } from 'react'
 import { useParams } from 'react-router'
 import { PageView } from '../components/PageView'
 import classes from '../styles/tab.module.css'
 
 export default function PatientView() {
-  const { id } = useParams()
+  const { id, tab } = useParams()
+  const [activeTab, setActiveTab] = useState<string | null>(tab ?? 'profile')
 
   return (
-    <PageView title="Patient">
+    <PageView title="Patient" backTo="/">
       <Tabs
         variant="unstyled"
-        keepMounted={false}
-        defaultValue="profile"
+        value={activeTab}
+        onChange={setActiveTab}
         classNames={classes}
       >
         <Tabs.List grow mb={18}>
@@ -53,7 +56,9 @@ export default function PatientView() {
         <Tabs.Panel value="profile">
           <Profile id={id ?? ''} />
         </Tabs.Panel>
-        <Tabs.Panel value="transactions">Messages tab content</Tabs.Panel>
+        <Tabs.Panel value="transactions">
+          <Transaction id={id ?? ''} />
+        </Tabs.Panel>
         <Tabs.Panel value="files">Settings tab content</Tabs.Panel>
       </Tabs>
     </PageView>
