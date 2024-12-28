@@ -1,6 +1,6 @@
 import { init as createCuid2 } from '@paralleldrive/cuid2'
-import { sql } from 'drizzle-orm'
-import { int, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { relations, sql } from 'drizzle-orm'
+import { int, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 function createId() {
   return createCuid2({
@@ -9,14 +9,21 @@ function createId() {
   })()
 }
 
-export const patientsTable = sqliteTable('patients', {
+const hasId = {
   id: text()
     .$defaultFn(() => createId())
     .primaryKey()
-    .unique()
     .notNull(),
+}
+
+const timeStamps = {
   createdAt: text().default(sql`(CURRENT_TIMESTAMP)`).notNull(),
   updatedAt: text().$onUpdateFn(() => sql`(CURRENT_TIMESTAMP)`),
+}
+
+export const patients = sqliteTable('patients', {
+  ...hasId,
+  ...timeStamps,
   patientType: text().notNull(),
   entryDateIfOld: int({ mode: 'timestamp' }),
   firstName: text().notNull(),
@@ -28,3 +35,37 @@ export const patientsTable = sqliteTable('patients', {
   phone: text().notNull(),
   address: text().notNull(),
 })
+
+export const bills = sqliteTable('bills', {
+  ...hasId,
+  createdAt: timeStamps.createdAt,
+  patientId: text()
+    .notNull()
+    .references(() => patients.id, { onDelete: 'cascade' }),
+  lastPaymentDate: text(),
+  totalDue: real().notNull(),
+  totalPaid: real().default(0),
+})
+
+export const payments = sqliteTable('payments', {
+  ...hasId,
+  createdAt: timeStamps.createdAt,
+  billId: text()
+    .notNull()
+    .references(() => bills.id, { onDelete: 'cascade' }),
+  amount: real().notNull(),
+  paymentMode: text().notNull(),
+})
+
+// Relations
+export const patientRelations = relations(patients, ({ many }) => ({
+  bills: many(bills),
+}))
+
+export const billRelations = relations(bills, ({ one, many }) => ({
+  patient: one(patients, {
+    fields: [bills.patientId],
+    references: [patients.id],
+  }),
+  payments: many(payments),
+}))
