@@ -10,9 +10,9 @@ log.initialize()
 log.transports.file.maxSize = 5242880 // 5 mb
 log.transports.file.resolvePathFn = (vars) =>
   path.join(
-    // biome-ignore lint/style/noNonNullAssertion:
     dirname(app.getPath('exe')),
     'logs',
+    // biome-ignore lint/style/noNonNullAssertion:
     vars.fileName!
   )
 
