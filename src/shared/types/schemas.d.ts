@@ -11,6 +11,8 @@ interface NewPatientFields {
   entryDate: import('@mantine/dates').DateValue
 }
 
+type EditPatientFields = Omit<NewPatientFields, 'patientType' | 'entryDate'>
+
 interface Patient {
   id: string
   createdAt: string
@@ -24,5 +26,17 @@ interface Patient {
   gender: string
   phone: string
   address: string
-  entryDate: number
+  entryDateIfOld: number
+}
+
+interface BillFields {
+  procedure: string
+  description: string
+  serviceAmount: number
+  items: {
+    name: string
+    amount: number
+    key: string
+  }[]
+  totalAmount: number
 }

@@ -8,7 +8,9 @@ declare global {
     api: {
       openFolderSelectorDialog: () => Promise<string | null>
       createPatientRecord: (fields: NewPatientFields) => Promise<boolean>
+      updatePatientRecord: (fields: EditPatientFields) => Promise<boolean>
       getPatients: () => Promise<Patient[]>
+      getPatientProfile: (id: string) => Promise<Patient | null>
       getSettings: () => Promise<AppConfig>
       saveSettings: (
         settings: AppConfig | ((prevSettings: AppConfig) => AppConfig)

@@ -10,8 +10,14 @@ const api = {
   createPatientRecord: async (fields: NewPatientFields) => {
     return await ipcRenderer.invoke('create-patient-record', fields)
   },
+  updatePatientRecord: async (fields: EditPatientFields) => {
+    return await ipcRenderer.invoke('update-patient-record', fields)
+  },
   getPatients: async () => {
     return await ipcRenderer.invoke('get-patients')
+  },
+  getPatientProfile: async (id: string) => {
+    return await ipcRenderer.invoke('get-patient-profile', id)
   },
 
   getSettings: async () => {

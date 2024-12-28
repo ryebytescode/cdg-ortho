@@ -1,9 +1,10 @@
 import fs from 'node:fs/promises'
 import path, { dirname } from 'node:path'
+import { eq } from 'drizzle-orm'
 import { app, dialog, ipcMain } from 'electron'
 import log from 'electron-log/main'
 import { DB } from './database/init'
-import { patientsTable } from './database/schema'
+import { patients } from './database/schema'
 
 const SETTINGS_FILENAME = 'settings.json'
 const SETTINGS_FILE = path.join(dirname(app.getPath('exe')), SETTINGS_FILENAME)
@@ -45,12 +46,15 @@ export function setListeners() {
       const settings = await getSettings()
 
       // Add to db
-      const patient: typeof patientsTable.$inferInsert = {
+      const patient: typeof patients.$inferInsert = {
         ...fields,
         birthdate: fields.birthdate as Date,
+        entryDateIfOld: fields.entryDate
+          ? (fields.entryDate as Date)
+          : undefined,
       }
 
-      const result = await DB.insert(patientsTable).values(patient).returning()
+      const result = await DB.insert(patients).values(patient).returning()
 
       if (!result) return false
 
@@ -69,8 +73,31 @@ export function setListeners() {
     }
   )
 
+  ipcMain.handle(
+    'update-patient-record',
+    async (_, fields: EditPatientFields) => {
+      const result = await DB.update(patients).set({
+        ...fields,
+        birthdate: fields.birthdate as Date,
+      })
+
+      return result.rowsAffected > 0
+    }
+  )
+
   ipcMain.handle('get-patients', async () => {
-    return await DB.select().from(patientsTable)
+    return await DB.select().from(patients)
+  })
+
+  ipcMain.handle('get-patient-profile', async (_, id: string) => {
+    return await DB.select()
+      .from(patients)
+      .where(eq(patients.id, id))
+      .then((values) => {
+        if (values.length !== 1) return null
+
+        return values[0]
+      })
   })
 
   ipcMain.handle('get-settings', getSettings)
