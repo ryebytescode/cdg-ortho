@@ -24,6 +24,7 @@
 		"db:migrate:dev": "drizzle-kit migrate --config=drizzle-dev.config.ts",
 		"db:migrate:prod": "drizzle-kit migrate --config=drizzle-prod.config.ts",
 		"db:studio": "drizzle-kit studio",
+		"db:push:dev": "drizzle-kit push --config=drizzle-dev.config.ts",
 		"gen-env-types": "gen-env-types ./.env -o ./src/shared/types/env.d.ts"
 	},
 	"dependencies": {
