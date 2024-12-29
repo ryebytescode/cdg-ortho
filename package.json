@@ -33,7 +33,6 @@
 		"@libsql/client": "^0.14.0",
 		"@mantine/core": "^7.15.2",
 		"@mantine/dates": "^7.15.2",
-		"@mantine/form": "^7.15.2",
 		"@mantine/hooks": "^7.15.2",
 		"@mantine/notifications": "^7.15.2",
 		"@paralleldrive/cuid2": "^2.2.2",
@@ -45,6 +44,7 @@
 		"drizzle-orm": "^0.38.3",
 		"electron-log": "^5.2.4",
 		"electron-updater": "^6.3.9",
+		"react-hook-form": "^7.54.2",
 		"react-imask": "^7.6.1",
 		"react-router": "^7.1.1"
 	},
@@ -63,6 +63,7 @@
 		"lefthook": "^1.10.0",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
+		"react-scan": "^0.0.54",
 		"tsx": "^4.19.2",
 		"typescript": "^5.7.2",
 		"vite": "^6.0.5"
