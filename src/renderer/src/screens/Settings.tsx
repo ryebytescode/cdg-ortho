@@ -1,15 +1,14 @@
 import { Button, Group, Stack, TextInput } from '@mantine/core'
-import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
-import { Config, initialValues } from '@renderer/helpers/config'
+import { Config } from '@renderer/helpers/config'
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router'
 import { PageView } from '../components/PageView'
 
 export default function Settings() {
   const navigate = useNavigate()
-  const { setFieldValue, key, getInputProps, onSubmit } = useForm<AppConfig>({
-    mode: 'uncontrolled',
-    initialValues,
+  const { control, setValue, handleSubmit } = useForm<AppConfig>({
+    defaultValues: async () => await Config.getAll(),
   })
 
   const handleFolderSelection = async (type: keyof AppConfig) => {
@@ -17,10 +16,10 @@ export default function Settings() {
 
     if (!folderPath) return
 
-    setFieldValue(type, folderPath)
+    setValue(type, folderPath)
   }
 
-  const handleSubmit = async (fields: AppConfig) => {
+  const onSubmit: SubmitHandler<AppConfig> = async (fields) => {
     const result = await Config.setAll(fields)
 
     if (result) {
@@ -42,18 +41,26 @@ export default function Settings() {
 
   return (
     <PageView title="Settings">
-      <form onSubmit={onSubmit(handleSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <Stack>
           <Group align="flex-end">
-            <TextInput
-              label="Patient data folder location"
-              description="This is where all patient data is stored."
-              placeholder="Click 'Select'"
-              readOnly
-              flex={1}
-              required
-              key={key('patientDataFolder')}
-              {...getInputProps('patientDataFolder')}
+            <Controller
+              control={control}
+              name="patientDataFolder"
+              rules={{
+                required: true,
+              }}
+              render={({ field }) => (
+                <TextInput
+                  label="Patient data folder location"
+                  description="This is where all patient data is stored."
+                  placeholder="Click 'Select'"
+                  readOnly
+                  flex={1}
+                  required
+                  {...field}
+                />
+              )}
             />
             <Button onClick={() => handleFolderSelection('patientDataFolder')}>
               Select
