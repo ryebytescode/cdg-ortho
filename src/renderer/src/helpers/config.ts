@@ -19,5 +19,3 @@ export const Config = {
     return await window.api.saveSettings(settings)
   },
 }
-
-export const initialValues = await Config.getAll()
