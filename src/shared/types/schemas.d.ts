@@ -28,6 +28,7 @@ interface Patient {
 }
 
 interface BillFields {
+  patientId: string
   procedure: string
   description: string
   serviceAmount: number
@@ -36,4 +37,17 @@ interface BillFields {
     amount: number
   }[]
   totalAmount: number
+}
+
+interface Bill {
+  id: string
+  createdAt: string
+  patientId: string
+  procedure: string
+  description: string
+  serviceAmount: number
+  items: string
+  lastPaymentDate: string
+  totalDue: number
+  totalPaid: number
 }
