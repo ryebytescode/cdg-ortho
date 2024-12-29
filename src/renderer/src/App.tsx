@@ -32,7 +32,7 @@ export default function App() {
             path="/patient/:id/edit"
             element={<PatientForm isEdit={true} />}
           />
-          <Route path="/bill/:id" element={<Bill />} />
+          <Route path="/bill/:id/new" element={<Bill />} />
         </Routes>
       </BrowserRouter>
       <Notifications limit={3} position="top-right" />

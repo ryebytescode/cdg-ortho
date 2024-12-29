@@ -55,31 +55,24 @@ const defaultValues: PatientFields = {
 export default function PatientForm({ isEdit = false }: { isEdit?: boolean }) {
   const { id } = useParams()
   const navigate = useNavigate()
-  const {
-    control,
-    handleSubmit,
-    reset,
-    watch,
-    register,
-    unregister,
-    setValue,
-  } = useForm<PatientFields>({
-    defaultValues: isEdit
-      ? async () => {
-          const result = await window.api.getPatientProfile(id as string)
+  const { control, handleSubmit, watch, register, unregister, setValue } =
+    useForm<PatientFields>({
+      defaultValues: isEdit
+        ? async () => {
+            const result = await window.api.getPatientProfile(id as string)
 
-          if (result) {
-            return {
-              ...result,
-              birthdate: new Date(result.birthdate),
+            if (result) {
+              return {
+                ...result,
+                birthdate: new Date(result.birthdate),
+              }
             }
-          }
 
-          // fallback
-          return defaultValues
-        }
-      : defaultValues,
-  })
+            // fallback
+            return defaultValues
+          }
+        : defaultValues,
+    })
   const loadingOverlayRef = useRef<ComponentRef<typeof LoadingOverlay>>(null)
 
   const onSubmit: SubmitHandler<PatientFields> = async (fields) => {
@@ -95,19 +88,18 @@ export default function PatientForm({ isEdit = false }: { isEdit?: boolean }) {
         message: `Patient record ${isEdit ? 'updated' : 'created'}.`,
         color: 'green',
       })
+
+      if (isEdit) {
+        navigate(`/patient/${id}`, { replace: true })
+      }
     } else {
       notifications.show({
         title: 'Error',
         message: `Cannot ${isEdit ? 'update' : 'create'} patient record.`,
         color: 'red',
       })
-    }
 
-    reset()
-    loadingOverlayRef.current?.hide()
-
-    if (isEdit) {
-      navigate(`/patient/${id}`, { replace: true })
+      loadingOverlayRef.current?.hide()
     }
   }
 
@@ -149,66 +141,32 @@ export default function PatientForm({ isEdit = false }: { isEdit?: boolean }) {
               </Collapse>
             )}
           />
-          <Group grow>
-            <Controller
-              control={control}
-              name="firstName"
-              rules={{
-                required: true,
-                validate: {
-                  minLength: (value) =>
-                    value.length < 2 &&
-                    'First name must have at least 2 letters.',
-                },
-              }}
-              render={({ field }) => (
-                <TextInput
-                  label="First name"
-                  required
-                  rightSection={
-                    <EnyeSelector setValue={setValue} field="firstName" />
-                  }
-                  {...field}
-                />
-              )}
-            />
-            <Controller
-              control={control}
-              name="lastName"
-              rules={{
-                required: true,
-                validate: {
-                  minLength: (value) =>
-                    value.length < 2 &&
-                    'Last name must have at least 2 letters.',
-                },
-              }}
-              render={({ field }) => (
-                <TextInput
-                  label="Last name"
-                  required
-                  rightSection={
-                    <EnyeSelector setValue={setValue} field="lastName" />
-                  }
-                  {...field}
-                />
-              )}
-            />
-          </Group>
           <Group>
-            <Controller
-              control={control}
-              name="middleName"
-              render={({ field }) => (
-                <TextInput
-                  label="Middle name"
-                  rightSection={
-                    <EnyeSelector setValue={setValue} field="middleName" />
-                  }
-                  {...field}
-                />
-              )}
-            />
+            <Group grow flex={1} gap="xs">
+              <Controller
+                control={control}
+                name="firstName"
+                rules={{
+                  required: true,
+                  validate: {
+                    minLength: (value) =>
+                      value.length < 2 &&
+                      'First name must have at least 2 letters.',
+                  },
+                }}
+                render={({ field }) => (
+                  <Group>
+                    <TextInput
+                      label="First name"
+                      required
+                      flex={1}
+                      {...field}
+                    />
+                    <EnyeSelector setValue={setValue} field="firstName" />
+                  </Group>
+                )}
+              />
+            </Group>
             <Controller
               control={control}
               name="suffix"
@@ -225,6 +183,33 @@ export default function PatientForm({ isEdit = false }: { isEdit?: boolean }) {
               )}
             />
           </Group>
+          <Controller
+            control={control}
+            name="middleName"
+            render={({ field }) => (
+              <Group>
+                <TextInput label="Middle name" required flex={1} {...field} />
+                <EnyeSelector setValue={setValue} field="middleName" />
+              </Group>
+            )}
+          />
+          <Controller
+            control={control}
+            name="lastName"
+            rules={{
+              required: true,
+              validate: {
+                minLength: (value) =>
+                  value.length < 2 && 'Last name must have at least 2 letters.',
+              },
+            }}
+            render={({ field }) => (
+              <Group>
+                <TextInput label="Last name" required flex={1} {...field} />
+                <EnyeSelector setValue={setValue} field="lastName" />
+              </Group>
+            )}
+          />
           <Controller
             control={control}
             name="birthdate"

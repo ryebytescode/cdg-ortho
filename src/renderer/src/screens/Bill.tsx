@@ -3,7 +3,6 @@ import {
   Button,
   Card,
   Group,
-  LoadingOverlay,
   NumberInput,
   Select,
   Stack,
@@ -11,14 +10,23 @@ import {
   TextInput,
   Textarea,
 } from '@mantine/core'
-import { useForm } from '@mantine/form'
-import { randomId } from '@mantine/hooks'
+import { notifications } from '@mantine/notifications'
+import { LoadingOverlay } from '@renderer/components/LoadingOverlay'
 import { PageView } from '@renderer/components/PageView'
+import { formatMoney } from '@renderer/helpers/utils'
 import { IconTrash } from '@tabler/icons-react'
-import { type ComponentRef, useRef } from 'react'
-import { useParams } from 'react-router'
+import { type ComponentRef, useCallback, useEffect, useRef } from 'react'
+import {
+  type Control,
+  Controller,
+  type SubmitHandler,
+  useFieldArray,
+  useForm,
+  useWatch,
+} from 'react-hook-form'
+import { useNavigate, useParams } from 'react-router'
 
-const initialValues: BillFields = {
+const defaultValues: Omit<BillFields, 'patientId'> = {
   procedure: 'ortho',
   description: '',
   serviceAmount: 0,
@@ -28,60 +36,111 @@ const initialValues: BillFields = {
 
 export default function Bill() {
   const { id } = useParams()
-  const loadingOverlayRef = useRef<ComponentRef<typeof LoadingOverlay>>(null)
-  const form = useForm<BillFields>({
-    mode: 'uncontrolled',
-    initialValues,
+  const navigate = useNavigate()
+  const { control, setValue, getValues, watch, handleSubmit } =
+    useForm<BillFields>({
+      defaultValues,
+    })
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'items',
   })
+  const loadingOverlayRef = useRef<ComponentRef<typeof LoadingOverlay>>(null)
 
-  const computeTotal = () => {}
+  const computeTotal = useCallback(() => {
+    let total = 0
+
+    total += getValues('serviceAmount')
+    // biome-ignore lint/complexity/noForEach:
+    getValues('items').forEach(({ amount }) => {
+      total += amount
+    })
+
+    setValue('totalAmount', total)
+  }, [getValues, setValue])
+
+  const onSubmit: SubmitHandler<BillFields> = async (fields) => {
+    loadingOverlayRef.current?.show()
+
+    const result = await window.api.createBill({
+      ...fields,
+      patientId: id as string,
+    })
+
+    if (result) {
+      notifications.show({
+        title: 'Success!',
+        message: 'Bill created.',
+        color: 'green',
+      })
+
+      navigate(`/patient/${id}/transactions`, { replace: true })
+    } else {
+      notifications.show({
+        title: 'Error',
+        message: 'Cannot created bill.',
+        color: 'red',
+      })
+
+      loadingOverlayRef.current?.hide()
+    }
+  }
 
   return (
     <PageView title="Add Bill" backTo={`/patient/${id}/transactions`}>
       <LoadingOverlay ref={loadingOverlayRef} />
-      <form>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <Stack>
-          <Select
-            label="Procedure"
-            placeholder="Pick value"
-            data={[{ label: 'Orthodontic', value: 'ortho' }]}
-            allowDeselect={false}
-            key={form.key('procedure')}
-            {...form.getInputProps('procedure')}
-            required
+          <Controller
+            control={control}
+            name="procedure"
+            rules={{
+              required: true,
+            }}
+            render={({ field }) => (
+              <Select
+                label="Procedure"
+                placeholder="Pick value"
+                data={[{ label: 'Orthodontic', value: 'ortho' }]}
+                allowDeselect={false}
+                required
+                {...field}
+              />
+            )}
           />
-          <Textarea
-            label="Description"
-            key={form.key('description')}
-            required
-            autosize
-            minRows={4}
-            {...form.getInputProps('description')}
+          <Controller
+            control={control}
+            name="description"
+            rules={{
+              required: true,
+            }}
+            render={({ field }) => (
+              <Textarea
+                label="Description"
+                required
+                autosize
+                minRows={4}
+                {...field}
+              />
+            )}
           />
-          <NumberInput
-            label="Procedure Amount"
-            min={0}
-            key={form.key('procedure')}
-            {...form.getInputProps('procedure')}
-            required
-          />
+          <ProcedureAmountInput control={control} computer={computeTotal} />
           <Stack gap="sm">
             <Group mt="md" justify="space-between">
               <Text>Items</Text>
               <Button
                 size="xs"
                 onClick={() =>
-                  form.insertListItem('items', {
+                  append({
                     name: '',
                     amount: 0,
-                    key: randomId(),
                   })
                 }
               >
                 Add item
               </Button>
             </Group>
-            {form.getValues().items.length > 0 ? (
+            {fields.length > 0 ? (
               <Group>
                 <Text fw={500} size="sm" style={{ flex: 1 }}>
                   Item
@@ -95,32 +154,34 @@ export default function Bill() {
                 No items
               </Text>
             )}
-            {form.getValues().items.map((item, index) => (
-              <Group key={item.key}>
-                <TextInput
-                  required
-                  style={{ flex: 1 }}
-                  key={form.key(`items.${index}.name`)}
-                  {...form.getInputProps(`items.${index}.name`)}
+            {fields.map((item, index) => (
+              <Group key={item.id}>
+                <Controller
+                  control={control}
+                  name={`items.${index}.name`}
+                  rules={{
+                    required: true,
+                  }}
+                  render={({ field }) => (
+                    <TextInput required style={{ flex: 1 }} {...field} />
+                  )}
                 />
-                <NumberInput
-                  min={0}
-                  required
-                  style={{ flex: 1 }}
-                  key={form.key(`items.${index}.amount`)}
-                  {...form.getInputProps(`items.${index}.amount`)}
+                <ItemAmountInput
+                  index={index}
+                  control={control}
+                  computer={computeTotal}
                 />
-                <ActionIcon
-                  color="red"
-                  onClick={() => form.removeListItem('items', index)}
-                >
+                <ActionIcon color="red" onClick={() => remove(index)}>
                   <IconTrash size="1rem" />
                 </ActionIcon>
               </Group>
             ))}
           </Stack>
-          <Card>
-            <Text>Total Amount</Text>
+          <Card ta="center">
+            <Text c="dimmed">Total Amount:</Text>
+            <Text size="lg" fw="bold">
+              {formatMoney(watch('totalAmount'))}
+            </Text>
           </Card>
           <Button type="submit" mt="md">
             Create bill
@@ -128,5 +189,69 @@ export default function Bill() {
         </Stack>
       </form>
     </PageView>
+  )
+}
+
+function ProcedureAmountInput({
+  control,
+  computer: computeTotal,
+}: {
+  control: Control<BillFields>
+  computer: () => void
+}) {
+  const amount = useWatch({
+    control,
+    name: 'serviceAmount',
+    defaultValue: 0,
+  })
+
+  useEffect(() => {
+    if (amount) computeTotal()
+  }, [amount, computeTotal])
+
+  return (
+    <Controller
+      control={control}
+      name="serviceAmount"
+      rules={{
+        required: true,
+      }}
+      render={({ field }) => (
+        <NumberInput label="Procedure Amount" min={0} required {...field} />
+      )}
+    />
+  )
+}
+
+function ItemAmountInput({
+  control,
+  index,
+  computer: computeTotal,
+}: {
+  control: Control<BillFields>
+  index: number
+  computer: () => void
+}) {
+  const amount = useWatch({
+    control,
+    name: `items.${index}.amount`,
+    defaultValue: 0,
+  })
+
+  useEffect(() => {
+    if (amount) computeTotal()
+  }, [amount, computeTotal])
+
+  return (
+    <Controller
+      control={control}
+      name={`items.${index}.amount`}
+      rules={{
+        required: true,
+      }}
+      render={({ field }) => (
+        <NumberInput min={0} required style={{ flex: 1 }} {...field} />
+      )}
+    />
   )
 }

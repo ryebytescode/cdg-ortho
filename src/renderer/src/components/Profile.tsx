@@ -8,14 +8,13 @@ export function Profile({ id }: { id: string }) {
   const navigate = useNavigate()
   const [patientData, setPatientData] = useState<Patient>()
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies:
   useEffect(() => {
     ;(async () => {
       const data = await window.api.getPatientProfile(id)
 
       if (data) setPatientData(data)
     })()
-  }, [])
+  }, [id])
 
   return (
     <Paper withBorder p={18}>

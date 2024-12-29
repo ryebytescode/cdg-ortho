@@ -54,10 +54,10 @@ export default function PatientView() {
         </Tabs.List>
 
         <Tabs.Panel value="profile">
-          <Profile id={id ?? ''} />
+          <Profile id={id as string} />
         </Tabs.Panel>
         <Tabs.Panel value="transactions">
-          <Transaction id={id ?? ''} />
+          <Transaction id={id as string} />
         </Tabs.Panel>
         <Tabs.Panel value="files">Settings tab content</Tabs.Panel>
       </Tabs>

@@ -12,7 +12,7 @@ export function PageView({ title, children, backTo }: PageViewProps) {
   const navigate = useNavigate()
 
   return (
-    <Container size="sm" py="xl">
+    <Container size="md" py="xl">
       <Stack>
         <Group gap="xl">
           <ActionIcon
