@@ -39,10 +39,14 @@ export const patients = sqliteTable('patients', {
 export const bills = sqliteTable('bills', {
   ...hasId,
   createdAt: timeStamps.createdAt,
+  lastPaymentDate: text().$onUpdateFn(() => sql`(CURRENT_TIMESTAMP)`),
   patientId: text()
     .notNull()
     .references(() => patients.id, { onDelete: 'cascade' }),
-  lastPaymentDate: text(),
+  procedure: text().notNull(),
+  description: text().notNull(),
+  serviceAmount: real().notNull(),
+  items: text({ mode: 'json' }),
   totalDue: real().notNull(),
   totalPaid: real().default(0),
 })

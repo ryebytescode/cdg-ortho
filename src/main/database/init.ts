@@ -4,6 +4,7 @@ import { cwd } from 'node:process'
 import { createClient } from '@libsql/client'
 import { drizzle } from 'drizzle-orm/libsql'
 import { app } from 'electron'
+import * as schema from './schema'
 
 const dbClient = createClient(
   app.isPackaged
@@ -22,4 +23,4 @@ const dbClient = createClient(
       }
 )
 
-export const DB = drizzle(dbClient)
+export const DB = drizzle(dbClient, { schema })

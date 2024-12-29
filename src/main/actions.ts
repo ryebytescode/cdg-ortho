@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { app, dialog, ipcMain } from 'electron'
 import log from 'electron-log/main'
 import { DB } from './database/init'
-import { patients } from './database/schema'
+import { bills, patients } from './database/schema'
 
 const SETTINGS_FILENAME = 'settings.json'
 const SETTINGS_FILE = path.join(dirname(app.getPath('exe')), SETTINGS_FILENAME)
@@ -40,50 +40,43 @@ export function setListeners() {
     return result.filePaths[0]
   })
 
-  ipcMain.handle(
-    'create-patient-record',
-    async (_, fields: NewPatientFields) => {
-      const settings = await getSettings()
+  ipcMain.handle('create-patient-record', async (_, fields: PatientFields) => {
+    const settings = await getSettings()
 
-      // Add to db
-      const patient: typeof patients.$inferInsert = {
-        ...fields,
-        birthdate: fields.birthdate as Date,
-        entryDateIfOld: fields.entryDate
-          ? (fields.entryDate as Date)
-          : undefined,
-      }
-
-      const result = await DB.insert(patients).values(patient).returning()
-
-      if (!result) return false
-
-      // Create a new folder named with a unique ID
-      try {
-        await fs.mkdir(
-          path.join(settings.patientDataFolder, result[0].id, 'uploads'),
-          { recursive: true }
-        )
-
-        return true
-      } catch (error) {
-        log.error(error)
-        return false
-      }
+    // Add to db
+    const patient: typeof patients.$inferInsert = {
+      ...fields,
+      patientType: fields.patientType as string,
+      birthdate: fields.birthdate as Date,
+      entryDateIfOld: fields.entryDate ? (fields.entryDate as Date) : undefined,
     }
-  )
 
-  ipcMain.handle(
-    'update-patient-record',
-    async (_, fields: EditPatientFields) => {
-      const result = await DB.update(patients).set({
-        ...fields,
-        birthdate: fields.birthdate as Date,
-      })
+    const result = await DB.insert(patients).values(patient).returning()
 
-      return result.rowsAffected > 0
+    if (!result) return false
+
+    // Create a new folder named with a unique ID
+    try {
+      await fs.mkdir(
+        path.join(settings.patientDataFolder, result[0].id, 'uploads'),
+        { recursive: true }
+      )
+
+      return true
+    } catch (error) {
+      log.error(error)
+      return false
     }
-  )
+  })
+
+  ipcMain.handle('update-patient-record', async (_, fields: PatientFields) => {
+    const result = await DB.update(patients).set({
+      ...fields,
+      birthdate: fields.birthdate as Date,
+    })
+
+    return result.rowsAffected > 0
+  })
 
   ipcMain.handle('get-patients', async () => {
     return await DB.select().from(patients)
@@ -98,6 +91,28 @@ export function setListeners() {
 
         return values[0]
       })
+  })
+
+  ipcMain.handle('create-bill', async (_, fields: BillFields) => {
+    const result = await DB.insert(bills).values({
+      ...fields,
+      totalDue: fields.totalAmount,
+    })
+
+    return result.rowsAffected > 0
+  })
+
+  ipcMain.handle('get-bills', async (_, id: string) => {
+    return await DB.query.bills.findMany({
+      where: (bills, { eq }) => eq(bills.patientId, id),
+      orderBy: (bills, { desc }) => [
+        desc(bills.createdAt),
+        desc(bills.lastPaymentDate),
+      ],
+      with: {
+        patient: true,
+      },
+    })
   })
 
   ipcMain.handle('get-settings', getSettings)

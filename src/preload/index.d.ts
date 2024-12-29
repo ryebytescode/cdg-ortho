@@ -7,7 +7,7 @@ declare global {
     electron: ElectronAPI
     api: {
       openFolderSelectorDialog: () => Promise<string | null>
-      createPatientRecord: (fields: NewPatientFields) => Promise<boolean>
+      createPatientRecord: (fields: PatientFields) => Promise<boolean>
       updatePatientRecord: (fields: EditPatientFields) => Promise<boolean>
       getPatients: () => Promise<Patient[]>
       getPatientProfile: (id: string) => Promise<Patient | null>
@@ -15,6 +15,8 @@ declare global {
       saveSettings: (
         settings: AppConfig | ((prevSettings: AppConfig) => AppConfig)
       ) => Promise<boolean>
+      createBill: (fields: BillFields) => Promise<boolean>
+      getBills: (id: string) => Promise<Bill[]>
     }
   }
 }

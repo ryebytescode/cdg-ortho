@@ -7,10 +7,10 @@ const api = {
     return await ipcRenderer.invoke('open-folder-selector-dialog')
   },
 
-  createPatientRecord: async (fields: NewPatientFields) => {
+  createPatientRecord: async (fields: PatientFields) => {
     return await ipcRenderer.invoke('create-patient-record', fields)
   },
-  updatePatientRecord: async (fields: EditPatientFields) => {
+  updatePatientRecord: async (fields: PatientFields) => {
     return await ipcRenderer.invoke('update-patient-record', fields)
   },
   getPatients: async () => {
@@ -18,6 +18,12 @@ const api = {
   },
   getPatientProfile: async (id: string) => {
     return await ipcRenderer.invoke('get-patient-profile', id)
+  },
+  createBill: async (fields: BillFields) => {
+    return await ipcRenderer.invoke('create-bill', fields)
+  },
+  getBills: async (id: string) => {
+    return await ipcRenderer.invoke('get-bills', id)
   },
 
   getSettings: async () => {
