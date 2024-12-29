@@ -13,3 +13,10 @@ export function joinNames(
     ? `${last}${suffix ? ` ${suffix}` : ''}, ${first}${mid ? ` ${mid?.at(0)}.` : ''}`
     : `${first}${mid ? ` ${mid?.at(0)}.` : ''} ${last}${suffix ? ` ${suffix}` : ''}`
 }
+
+export function formatMoney(value: number) {
+  return Intl.NumberFormat('en-PH', {
+    currency: 'PHP',
+    style: 'currency',
+  }).format(value)
+}
