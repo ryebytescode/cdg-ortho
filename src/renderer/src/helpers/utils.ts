@@ -1,3 +1,5 @@
+import { type DateArg, format } from 'date-fns'
+
 export function truncateString(str, maxLength) {
   return str.length > maxLength ? `${str.slice(0, maxLength - 3)}...` : str
 }
@@ -19,4 +21,8 @@ export function formatMoney(value: number) {
     currency: 'PHP',
     style: 'currency',
   }).format(value)
+}
+
+export function formatDate(date: DateArg<Date> & {}) {
+  return format(date, 'MMM dd, yyyy @ h:mm b')
 }
