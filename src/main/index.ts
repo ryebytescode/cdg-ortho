@@ -19,6 +19,7 @@ log.transports.file.resolvePathFn = (vars) =>
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
+    title: 'CDG Ortho',
     width: 1240,
     height: 670,
     show: false,
@@ -32,6 +33,10 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+  })
+
+  mainWindow.on('page-title-updated', (event) => {
+    event.preventDefault()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
