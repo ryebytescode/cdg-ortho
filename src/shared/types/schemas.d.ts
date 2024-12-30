@@ -1,9 +1,10 @@
 interface PatientFields {
+  id: string
   patientType?: string
   entryDate?: import('@mantine/dates').DateValue
   firstName: string
   lastName: string
-  middleName: string
+  middleName?: string
   suffix: string
   birthdate: import('@mantine/dates').DateValue
   gender: string
@@ -28,6 +29,7 @@ interface Patient {
 }
 
 interface BillFields {
+  id: string
   patientId: string
   procedure: string
   description: string
@@ -46,8 +48,26 @@ interface Bill {
   procedure: string
   description: string
   serviceAmount: number
-  items: string
+  items: BillFields['items']
   lastPaymentDate: string
   totalDue: number
   totalPaid: number
+  patient: Patient
+  payments: Payment[]
+}
+
+interface Payment {
+  id: string
+  createdAt: string
+  billId: string
+  amount: number
+  balance: number
+  paymentMode: string
+}
+
+interface SettleFields {
+  billId: string
+  amount: number
+  balance: number
+  paymentMode: string | null
 }

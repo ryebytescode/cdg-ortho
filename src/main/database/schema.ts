@@ -16,9 +16,11 @@ const hasId = {
     .notNull(),
 }
 
+const defaultTimestamp = sql`(datetime('now','localtime'))`
+
 const timeStamps = {
-  createdAt: text().default(sql`(CURRENT_TIMESTAMP)`).notNull(),
-  updatedAt: text().$onUpdateFn(() => sql`(CURRENT_TIMESTAMP)`),
+  createdAt: text().default(defaultTimestamp).notNull(),
+  updatedAt: text().$onUpdateFn(() => defaultTimestamp),
 }
 
 export const patients = sqliteTable('patients', {
@@ -39,7 +41,7 @@ export const patients = sqliteTable('patients', {
 export const bills = sqliteTable('bills', {
   ...hasId,
   createdAt: timeStamps.createdAt,
-  lastPaymentDate: text().$onUpdateFn(() => sql`(CURRENT_TIMESTAMP)`),
+  lastPaymentDate: text().$onUpdateFn(() => defaultTimestamp),
   patientId: text()
     .notNull()
     .references(() => patients.id, { onDelete: 'cascade' }),
@@ -58,6 +60,7 @@ export const payments = sqliteTable('payments', {
     .notNull()
     .references(() => bills.id, { onDelete: 'cascade' }),
   amount: real().notNull(),
+  balance: real(),
   paymentMode: text().notNull(),
 })
 
@@ -72,4 +75,11 @@ export const billRelations = relations(bills, ({ one, many }) => ({
     references: [patients.id],
   }),
   payments: many(payments),
+}))
+
+export const paymentRelations = relations(payments, ({ one }) => ({
+  bill: one(bills, {
+    fields: [payments.billId],
+    references: [bills.id],
+  }),
 }))
