@@ -16,7 +16,10 @@ declare global {
         settings: AppConfig | ((prevSettings: AppConfig) => AppConfig)
       ) => Promise<boolean>
       createBill: (fields: BillFields) => Promise<boolean>
+      updateBill: (fields: BillFields) => Promise<boolean>
       getBills: (id: string) => Promise<Bill[]>
+      getBill: (id: string) => Promise<Bill>
+      settleBill: (fields: SettleFields) => Promise<boolean>
     }
   }
 }

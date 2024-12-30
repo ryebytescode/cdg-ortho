@@ -22,8 +22,17 @@ const api = {
   createBill: async (fields: BillFields) => {
     return await ipcRenderer.invoke('create-bill', fields)
   },
+  updateBill: async (fields: BillFields) => {
+    return await ipcRenderer.invoke('update-bill', fields)
+  },
   getBills: async (id: string) => {
     return await ipcRenderer.invoke('get-bills', id)
+  },
+  getBill: async (id: string) => {
+    return await ipcRenderer.invoke('get-bill', id)
+  },
+  settleBill: async (fields: SettleFields) => {
+    return await ipcRenderer.invoke('settle-bill', fields)
   },
 
   getSettings: async () => {

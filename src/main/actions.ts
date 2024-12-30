@@ -1,10 +1,10 @@
 import fs from 'node:fs/promises'
 import path, { dirname } from 'node:path'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { app, dialog, ipcMain } from 'electron'
 import log from 'electron-log/main'
 import { DB } from './database/init'
-import { bills, patients } from './database/schema'
+import { bills, patients, payments } from './database/schema'
 
 const SETTINGS_FILENAME = 'settings.json'
 const SETTINGS_FILE = path.join(dirname(app.getPath('exe')), SETTINGS_FILENAME)
@@ -46,6 +46,7 @@ export function setListeners() {
     // Add to db
     const patient: typeof patients.$inferInsert = {
       ...fields,
+      id: undefined,
       patientType: fields.patientType as string,
       birthdate: fields.birthdate as Date,
       entryDateIfOld: fields.entryDate ? (fields.entryDate as Date) : undefined,
@@ -70,10 +71,16 @@ export function setListeners() {
   })
 
   ipcMain.handle('update-patient-record', async (_, fields: PatientFields) => {
-    const result = await DB.update(patients).set({
-      ...fields,
-      birthdate: fields.birthdate as Date,
-    })
+    const result = await DB.update(patients)
+      .set({
+        ...fields,
+        patientType: fields.patientType as string,
+        birthdate: fields.birthdate as Date,
+        entryDateIfOld: fields.entryDate
+          ? (fields.entryDate as Date)
+          : undefined,
+      })
+      .where(eq(patients.id, fields.id))
 
     return result.rowsAffected > 0
   })
@@ -102,6 +109,17 @@ export function setListeners() {
     return result.rowsAffected > 0
   })
 
+  ipcMain.handle('update-bill', async (_, fields: BillFields) => {
+    const result = await DB.update(bills)
+      .set({
+        ...fields,
+        totalDue: fields.totalAmount,
+      })
+      .where(eq(bills.id, fields.id))
+
+    return result.rowsAffected > 0
+  })
+
   ipcMain.handle('get-bills', async (_, id: string) => {
     return await DB.query.bills.findMany({
       where: (bills, { eq }) => eq(bills.patientId, id),
@@ -109,10 +127,44 @@ export function setListeners() {
         desc(bills.createdAt),
         desc(bills.lastPaymentDate),
       ],
+    })
+  })
+
+  ipcMain.handle('get-bill', async (_, id: string) => {
+    return await DB.query.bills.findFirst({
+      where: (bills, { eq }) => eq(bills.id, id),
       with: {
         patient: true,
+        payments: true,
       },
     })
+  })
+
+  ipcMain.handle('settle-bill', async (_, fields: SettleFields) => {
+    const result = await DB.transaction(async (tx) => {
+      let hasError = false
+      const insertPaymentResult = await tx.insert(payments).values({
+        ...fields,
+        paymentMode: fields.paymentMode ?? '',
+      })
+
+      if (insertPaymentResult.rowsAffected === 0) hasError = true
+
+      const updateBillResult = await tx
+        .update(bills)
+        .set({
+          totalPaid: sql`${bills.totalPaid} + ${fields.amount}`,
+        })
+        .where(eq(bills.id, fields.billId))
+
+      if (updateBillResult.rowsAffected === 0) hasError = true
+
+      if (hasError) tx.rollback()
+
+      return hasError
+    })
+
+    return !result
   })
 
   ipcMain.handle('get-settings', getSettings)
