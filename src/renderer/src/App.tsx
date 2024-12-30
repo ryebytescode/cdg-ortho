@@ -6,7 +6,8 @@ import '@mantine/notifications/styles.css'
 import log from 'electron-log/renderer'
 import { useEffect } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router'
-import Bill from './screens/Bill'
+import BillForm from './screens/BillForm'
+import BillView from './screens/BillView'
 import Index from './screens/Index'
 import PatientForm from './screens/PatientForm'
 import PatientView from './screens/PatientView'
@@ -32,7 +33,12 @@ export default function App() {
             path="/patient/:id/edit"
             element={<PatientForm isEdit={true} />}
           />
-          <Route path="/bill/:id/new" element={<Bill />} />
+          <Route path="/bill/:patientId/:billId" element={<BillView />} />
+          <Route path="/bill/:patientId/new" element={<BillForm />} />
+          <Route
+            path="/bill/:patientId/:billId/edit"
+            element={<BillForm isEdit={true} />}
+          />
         </Routes>
       </BrowserRouter>
       <Notifications limit={3} position="top-right" />

@@ -1,5 +1,5 @@
-import { Button, Group, Paper, Table } from '@mantine/core'
-import { joinNames } from '@renderer/helpers/utils'
+import { Button, Paper, Table } from '@mantine/core'
+import { formatDate, joinNames } from '@renderer/helpers/utils'
 import { differenceInYears, format } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -18,6 +18,9 @@ export function Profile({ id }: { id: string }) {
 
   return (
     <Paper withBorder p={18}>
+      <Button mb="md" onClick={() => navigate(`/patient/${id}/edit`)}>
+        Edit
+      </Button>
       {patientData && (
         <Table
           variant="vertical"
@@ -31,13 +34,19 @@ export function Profile({ id }: { id: string }) {
               <Table.Td>{patientData?.id}</Table.Td>
             </Table.Tr>
             <Table.Tr>
+              <Table.Th>Date Created</Table.Th>
+              <Table.Td>{formatDate(patientData?.createdAt)}</Table.Td>
+            </Table.Tr>
+            <Table.Tr>
               <Table.Th>Full Name</Table.Th>
               <Table.Td>
                 {joinNames(
                   patientData.firstName,
                   patientData.lastName,
                   patientData.middleName,
-                  patientData.suffix
+                  patientData.suffix,
+                  false,
+                  true
                 ).toUpperCase()}
               </Table.Td>
             </Table.Tr>
@@ -85,9 +94,6 @@ export function Profile({ id }: { id: string }) {
           </Table.Tbody>
         </Table>
       )}
-      <Group grow mt={18}>
-        <Button onClick={() => navigate(`/patient/${id}/edit`)}>Edit</Button>
-      </Group>
     </Paper>
   )
 }

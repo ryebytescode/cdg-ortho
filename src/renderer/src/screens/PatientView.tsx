@@ -16,7 +16,7 @@ export default function PatientView() {
   const [activeTab, setActiveTab] = useState<string | null>(tab ?? 'profile')
 
   return (
-    <PageView title="Patient" backTo="/">
+    <PageView title="Patient" backTo="/patients">
       <Tabs
         variant="unstyled"
         value={activeTab}

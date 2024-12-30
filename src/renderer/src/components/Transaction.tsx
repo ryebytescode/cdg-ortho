@@ -1,16 +1,9 @@
-import {
-  Badge,
-  Button,
-  Center,
-  type MantineColor,
-  Paper,
-  Stack,
-  Table,
-  Text,
-} from '@mantine/core'
+import { Badge, Button, Center, Paper, Stack, Table, Text } from '@mantine/core'
 import {
   formatDate,
   formatMoney,
+  getStatus,
+  statusColors,
   truncateString,
 } from '@renderer/helpers/utils'
 import { IconDatabaseOff } from '@tabler/icons-react'
@@ -25,12 +18,6 @@ import { useNavigate } from 'react-router'
 
 const fallbackData: Bill[] = []
 const columnHelper = createColumnHelper<Bill>()
-
-const status: Record<string, MantineColor> = {
-  pending: 'gray',
-  partial: 'orange',
-  paid: 'green',
-}
 
 const columns = [
   columnHelper.accessor('id', {
@@ -54,16 +41,11 @@ const columns = [
     cell: (cell) => (cell.getValue() ? formatDate(cell.getValue()) : '-'),
   }),
   columnHelper.accessor(
-    ({ totalDue, totalPaid }) => {
-      if (totalPaid === 0) return 'pending'
-      if (totalPaid < totalDue) return 'partial'
-
-      return 'paid'
-    },
+    ({ totalDue, totalPaid }) => getStatus(totalDue, totalPaid),
     {
       id: 'status',
       cell: (cell) => (
-        <Badge color={status[cell.getValue()]}>{cell.getValue()}</Badge>
+        <Badge color={statusColors[cell.getValue()]}>{cell.getValue()}</Badge>
       ),
     }
   ),
@@ -127,7 +109,9 @@ export function Transaction({ id }: { id: string }) {
                   key={row.id}
                   style={{ cursor: 'pointer' }}
                   onClick={() =>
-                    navigate(`/patient/${row.getVisibleCells()[0].getValue()}`)
+                    navigate(
+                      `/bill/${id}/${row.getVisibleCells()[0].getValue()}`
+                    )
                   }
                 >
                   {row.getVisibleCells().map((cell) => (

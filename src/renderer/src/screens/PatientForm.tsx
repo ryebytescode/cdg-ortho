@@ -1,3 +1,4 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Button,
   Collapse,
@@ -12,14 +13,19 @@ import {
 } from '@mantine/core'
 import { DateInput } from '@mantine/dates'
 import { notifications } from '@mantine/notifications'
-import { EnyeSelector } from '@renderer/components/EnyeSelector'
+import { AddPatientSchema } from '@renderer/helpers/fields'
 import { type ComponentRef, useEffect, useRef } from 'react'
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form'
+import {
+  Controller,
+  FormProvider,
+  type SubmitHandler,
+  useForm,
+  useFormContext,
+} from 'react-hook-form'
 import { IMaskInput } from 'react-imask'
 import { useNavigate, useParams } from 'react-router'
 import { LoadingOverlay } from '../components/LoadingOverlay'
 import { PageView } from '../components/PageView'
-import patterns from '../helpers/patterns'
 
 const patientTypes: SegmentedControlItem[] = [
   { label: 'New patient', value: 'new' },
@@ -32,14 +38,15 @@ const gender: SegmentedControlItem[] = [
 ]
 
 const suffixes: ComboboxData = [
-  { label: 'Jr', value: 'Jr' },
-  { label: 'Sr', value: 'Sr' },
+  { label: 'JR', value: 'Jr' },
+  { label: 'SR', value: 'Sr' },
   { label: 'II', value: 'II' },
   { label: 'III', value: 'III' },
   { label: 'IV', value: 'IV' },
 ]
 
 const defaultValues: PatientFields = {
+  id: '',
   patientType: 'new',
   firstName: '',
   lastName: '',
@@ -55,25 +62,28 @@ const defaultValues: PatientFields = {
 export default function PatientForm({ isEdit = false }: { isEdit?: boolean }) {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { control, handleSubmit, watch, register, unregister, setValue } =
-    useForm<PatientFields>({
-      defaultValues: isEdit
-        ? async () => {
-            const result = await window.api.getPatientProfile(id as string)
+  const methods = useForm<PatientFields>({
+    resolver: zodResolver(AddPatientSchema),
+    defaultValues: isEdit
+      ? async () => {
+          const result = await window.api.getPatientProfile(id as string)
 
-            if (result) {
-              return {
-                ...result,
-                birthdate: new Date(result.birthdate),
-              }
+          if (result) {
+            return {
+              ...result,
+              id: id as string,
+              birthdate: new Date(result.birthdate),
             }
-
-            // fallback
-            return defaultValues
           }
-        : defaultValues,
-    })
+
+          // fallback
+          return defaultValues
+        }
+      : defaultValues,
+  })
+  const { control, handleSubmit, watch, resetField } = methods
   const loadingOverlayRef = useRef<ComponentRef<typeof LoadingOverlay>>(null)
+  const patientType = watch('patientType')
 
   const onSubmit: SubmitHandler<PatientFields> = async (fields) => {
     loadingOverlayRef.current?.show()
@@ -91,6 +101,8 @@ export default function PatientForm({ isEdit = false }: { isEdit?: boolean }) {
 
       if (isEdit) {
         navigate(`/patient/${id}`, { replace: true })
+      } else {
+        navigate('/patients', { replace: true })
       }
     } else {
       notifications.show({
@@ -104,177 +116,219 @@ export default function PatientForm({ isEdit = false }: { isEdit?: boolean }) {
   }
 
   useEffect(() => {
-    if (watch('patientType') === 'old') register('entryDate')
-    else unregister('entryDate')
-  }, [watch, register, unregister])
+    if (patientType === 'new') {
+      resetField('entryDate')
+    }
+  }, [patientType, resetField])
 
   return (
-    <PageView title="Add patient">
+    <PageView
+      title={`${isEdit ? 'Edit' : 'Add'} patient`}
+      backTo={isEdit ? `/patient/${id}` : '/'}
+    >
       <LoadingOverlay ref={loadingOverlayRef} />
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Stack>
-          <Controller
-            control={control}
-            name="patientType"
-            rules={{
-              required: true,
-            }}
-            render={({ field }) => (
-              <SegmentedControl data={patientTypes} {...field} />
-            )}
-          />
-          <Controller
-            control={control}
-            name="entryDate"
-            rules={{
-              required: true,
-            }}
-            render={({ field }) => (
-              <Collapse in={watch('patientType') === 'old'}>
-                <DateInput
-                  label="Date of entry"
-                  placeholder="Pick a date"
-                  maxDate={new Date()}
-                  required={watch('patientType') === 'old'}
-                  {...field}
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Stack>
+            <Controller
+              control={control}
+              name="patientType"
+              render={({ field }) => (
+                <SegmentedControl data={patientTypes} {...field} />
+              )}
+            />
+            <Controller
+              control={control}
+              name="entryDate"
+              render={({ field, fieldState: { error } }) => (
+                <Collapse in={patientType === 'old'}>
+                  <DateInput
+                    label="Date of entry"
+                    placeholder="Pick a date"
+                    maxDate={new Date()}
+                    withAsterisk={patientType === 'old'}
+                    styles={{
+                      input: {
+                        textTransform: 'uppercase',
+                      },
+                    }}
+                    error={error?.message}
+                    {...field}
+                  />
+                </Collapse>
+              )}
+            />
+            <Group>
+              <Group grow flex={1} gap="xs">
+                <Controller
+                  control={control}
+                  name="firstName"
+                  render={({ field, fieldState: { error } }) => (
+                    <Group>
+                      <TextInput
+                        label="First name"
+                        withAsterisk
+                        flex={1}
+                        styles={{
+                          input: {
+                            textTransform: 'uppercase',
+                          },
+                        }}
+                        error={error?.message}
+                        {...field}
+                      />
+                      <EnyeButton field="firstName" />
+                    </Group>
+                  )}
                 />
-              </Collapse>
-            )}
-          />
-          <Group>
-            <Group grow flex={1} gap="xs">
+              </Group>
               <Controller
                 control={control}
-                name="firstName"
-                rules={{
-                  required: true,
-                  validate: {
-                    minLength: (value) =>
-                      value.length < 2 &&
-                      'First name must have at least 2 letters.',
-                  },
-                }}
+                name="suffix"
                 render={({ field }) => (
-                  <Group>
-                    <TextInput
-                      label="First name"
-                      required
-                      flex={1}
-                      {...field}
-                    />
-                    <EnyeSelector setValue={setValue} field="firstName" />
-                  </Group>
+                  <Select
+                    label="Suffix"
+                    placeholder="Select"
+                    data={suffixes}
+                    allowDeselect
+                    clearable
+                    styles={{
+                      input: {
+                        textTransform: 'uppercase',
+                      },
+                    }}
+                    maw={120}
+                    {...field}
+                  />
                 )}
               />
             </Group>
             <Controller
               control={control}
-              name="suffix"
-              render={({ field }) => (
-                <Select
-                  label="Suffix"
-                  placeholder="Pick value"
-                  data={suffixes}
-                  allowDeselect
-                  clearable
-                  maw={120}
+              name="middleName"
+              render={({ field, fieldState: { error } }) => (
+                <Group>
+                  <TextInput
+                    label="Middle name"
+                    flex={1}
+                    {...field}
+                    styles={{
+                      input: {
+                        textTransform: 'uppercase',
+                      },
+                    }}
+                    error={error?.message}
+                  />
+                  <EnyeButton field="middleName" />
+                </Group>
+              )}
+            />
+            <Controller
+              control={control}
+              name="lastName"
+              render={({ field, fieldState: { error } }) => (
+                <Group>
+                  <TextInput
+                    label="Last name"
+                    withAsterisk
+                    flex={1}
+                    styles={{
+                      input: {
+                        textTransform: 'uppercase',
+                      },
+                    }}
+                    error={error?.message}
+                    {...field}
+                  />
+                  <EnyeButton field="lastName" />
+                </Group>
+              )}
+            />
+            <Controller
+              control={control}
+              name="birthdate"
+              render={({ field, fieldState: { error } }) => (
+                <DateInput
+                  label="Birthdate"
+                  placeholder="Pick a date"
+                  maxDate={new Date()}
+                  withAsterisk
+                  styles={{
+                    input: {
+                      textTransform: 'uppercase',
+                    },
+                  }}
+                  popoverProps={{
+                    position: 'top-start',
+                  }}
+                  error={error?.message}
                   {...field}
                 />
               )}
             />
-          </Group>
-          <Controller
-            control={control}
-            name="middleName"
-            render={({ field }) => (
-              <Group>
-                <TextInput label="Middle name" required flex={1} {...field} />
-                <EnyeSelector setValue={setValue} field="middleName" />
-              </Group>
-            )}
-          />
-          <Controller
-            control={control}
-            name="lastName"
-            rules={{
-              required: true,
-              validate: {
-                minLength: (value) =>
-                  value.length < 2 && 'Last name must have at least 2 letters.',
-              },
-            }}
-            render={({ field }) => (
-              <Group>
-                <TextInput label="Last name" required flex={1} {...field} />
-                <EnyeSelector setValue={setValue} field="lastName" />
-              </Group>
-            )}
-          />
-          <Controller
-            control={control}
-            name="birthdate"
-            rules={{
-              required: true,
-            }}
-            render={({ field }) => (
-              <DateInput
-                label="Birthdate"
-                placeholder="Pick a date"
-                maxDate={new Date()}
-                required
-                popoverProps={{
-                  position: 'top-start',
-                }}
-                {...field}
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="gender"
-            rules={{
-              required: true,
-            }}
-            render={({ field }) => (
-              <SegmentedControl data={gender} {...field} />
-            )}
-          />
-          <Controller
-            control={control}
-            name="phone"
-            rules={{
-              required: true,
-              validate: {
-                format: (value) =>
-                  !patterns.phone.test(value) && 'Invalid format.',
-              },
-            }}
-            render={({ field }) => (
-              <InputBase
-                component={IMaskInput}
-                label="Phone"
-                placeholder="0912 345 6789"
-                mask="0000 000 0000"
-                required
-                {...field}
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="address"
-            rules={{
-              required: true,
-            }}
-            render={({ field }) => (
-              <TextInput label="Address" maxLength={200} required {...field} />
-            )}
-          />
-          <Button type="submit" mt="md">
-            Create record
-          </Button>
-        </Stack>
-      </form>
+            <Controller
+              control={control}
+              name="gender"
+              render={({ field }) => (
+                <SegmentedControl data={gender} {...field} />
+              )}
+            />
+            <Controller
+              control={control}
+              name="phone"
+              render={({ field, fieldState: { error } }) => (
+                <InputBase
+                  component={IMaskInput}
+                  label="Phone"
+                  placeholder="0912 345 6789"
+                  mask="0000 000 0000"
+                  unmask={true}
+                  withAsterisk
+                  error={error?.message}
+                  {...field}
+                  onChange={undefined}
+                  onAccept={(value) => field.onChange(value)}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="address"
+              render={({ field, fieldState: { error } }) => (
+                <TextInput
+                  label="Address"
+                  maxLength={200}
+                  withAsterisk
+                  styles={{
+                    input: {
+                      textTransform: 'uppercase',
+                    },
+                  }}
+                  error={error?.message}
+                  {...field}
+                />
+              )}
+            />
+            <Button type="submit" mt="md">
+              {isEdit ? 'Update' : 'Create'} record
+            </Button>
+          </Stack>
+        </form>
+      </FormProvider>
     </PageView>
+  )
+}
+
+function EnyeButton({ field }: { field: keyof PatientFields }) {
+  const { setValue, getValues } = useFormContext<PatientFields>()
+
+  return (
+    <Button
+      mt={24}
+      onClick={() => setValue(field, `${getValues(field)}Ñ`)}
+      color="gray"
+    >
+      Ñ
+    </Button>
   )
 }

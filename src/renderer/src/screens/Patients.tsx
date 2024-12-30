@@ -66,7 +66,7 @@ export default function Patients() {
   }, [])
 
   return (
-    <PageView title="Patients">
+    <PageView title="Patients" backTo="/">
       {!patients?.length ? (
         <Center py={64}>
           <Stack align="center" justify="center" gap="lg">
