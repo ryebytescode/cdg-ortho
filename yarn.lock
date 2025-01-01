@@ -352,6 +352,7 @@ __metadata:
     "@libsql/client": "npm:^0.14.0"
     "@mantine/core": "npm:^7.15.2"
     "@mantine/dates": "npm:^7.15.2"
+    "@mantine/dropzone": "npm:^7.15.2"
     "@mantine/hooks": "npm:^7.15.2"
     "@mantine/notifications": "npm:^7.15.2"
     "@paralleldrive/cuid2": "npm:^2.2.2"
@@ -1841,6 +1842,20 @@ __metadata:
     react: ^18.x || ^19.x
     react-dom: ^18.x || ^19.x
   checksum: 10c0/8bb0d56a87fa82c66e624b2148dd0310744230c9f3c275ed980b89aeadd33770727bbe55685c74f5ca0e98e842db445f89a9b1369d78d6e5762dc73a5d95c7c5
+  languageName: node
+  linkType: hard
+
+"@mantine/dropzone@npm:^7.15.2":
+  version: 7.15.2
+  resolution: "@mantine/dropzone@npm:7.15.2"
+  dependencies:
+    react-dropzone-esm: "npm:15.2.0"
+  peerDependencies:
+    "@mantine/core": 7.15.2
+    "@mantine/hooks": 7.15.2
+    react: ^18.x || ^19.x
+    react-dom: ^18.x || ^19.x
+  checksum: 10c0/47b58c8c45bc259de114bd6385b1d29a2056dec38e469833ed174536dc45f504b6ebf9582d91520ced0c59973a03fe31fba804163f3685956af78ee0ece80cba
   languageName: node
   linkType: hard
 
@@ -5825,6 +5840,17 @@ __metadata:
   peerDependencies:
     react: ^19.0.0
   checksum: 10c0/a36ce7ab507b237ae2759c984cdaad4af4096d8199fb65b3815c16825e5cfeb7293da790a3fc2184b52bfba7ba3ff31c058c01947aff6fd1a3701632aabaa6a9
+  languageName: node
+  linkType: hard
+
+"react-dropzone-esm@npm:15.2.0":
+  version: 15.2.0
+  resolution: "react-dropzone-esm@npm:15.2.0"
+  dependencies:
+    prop-types: "npm:^15.8.1"
+  peerDependencies:
+    react: ">= 16.8 || 18.0.0"
+  checksum: 10c0/a82dce547746f29214fa396e4060930250dd1b5f15c81e761035a05a09a1354493a90f79c1125c6341aee4b6226444bc7c7d29fc54ad266c149dfff170ef47a9
   languageName: node
   linkType: hard
 
