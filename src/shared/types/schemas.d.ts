@@ -71,3 +71,13 @@ interface SettleFields {
   balance: number
   paymentMode: string | null
 }
+
+interface FileProps {
+  data: {
+    chunk: ArrayBuffer
+    totalChunks: number
+    position: number
+  }
+  name: string
+  size: number
+}
