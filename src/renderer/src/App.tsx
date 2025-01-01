@@ -1,6 +1,7 @@
 import { MantineProvider } from '@mantine/core'
 import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
+import '@mantine/dropzone/styles.css'
 import { Notifications } from '@mantine/notifications'
 import '@mantine/notifications/styles.css'
 import log from 'electron-log/renderer'
@@ -12,6 +13,7 @@ import Index from './screens/Index'
 import PatientForm from './screens/PatientForm'
 import PatientView from './screens/PatientView'
 import Patients from './screens/Patients'
+import PhotoManager from './screens/PhotoManager'
 import Settings from './screens/Settings'
 
 export default function App() {
@@ -39,6 +41,7 @@ export default function App() {
             path="/bill/:patientId/:billId/edit"
             element={<BillForm isEdit={true} />}
           />
+          <Route path="/photos/:patientId" element={<PhotoManager />} />
         </Routes>
       </BrowserRouter>
       <Notifications limit={3} position="top-right" />
