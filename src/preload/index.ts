@@ -1,5 +1,6 @@
 import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge, ipcRenderer } from 'electron'
+import type { FileCategory } from '../shared/types/enums'
 
 // Custom APIs for renderer
 const api = {
@@ -33,6 +34,37 @@ const api = {
   },
   settleBill: async (fields: SettleFields) => {
     return await ipcRenderer.invoke('settle-bill', fields)
+  },
+  uploadTempFile: (
+    patientId: string,
+    category: FileCategory,
+    file: FileProps
+  ) => {
+    ipcRenderer.send('upload-temp-file', patientId, category, file)
+  },
+
+  onUploadComplete: (callback: () => void) => {
+    ipcRenderer.on('upload-complete', callback)
+  },
+  onUploadError: (callback: () => void) => {
+    ipcRenderer.on('upload-error', callback)
+  },
+  onUploadProgress: (
+    callback: (fileName: string, progress: number) => void
+  ) => {
+    ipcRenderer.on('upload-progress', (_, fileName, progress) =>
+      callback(fileName, progress)
+    )
+  },
+  removeUploadProgressListener: (
+    callback: (fileName: string, progress: number) => void
+  ) => {
+    const wrappedCallback = (
+      _: Electron.IpcRendererEvent,
+      fileName: string,
+      progress: number
+    ) => callback(fileName, progress)
+    ipcRenderer.removeListener('upload-progress', wrappedCallback)
   },
 
   getSettings: async () => {

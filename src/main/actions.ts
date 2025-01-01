@@ -1,13 +1,18 @@
+import { createWriteStream } from 'node:fs'
 import fs from 'node:fs/promises'
 import path, { dirname } from 'node:path'
+import { Readable } from 'node:stream'
 import { eq, sql } from 'drizzle-orm'
-import { app, dialog, ipcMain } from 'electron'
+import { BrowserWindow, app, dialog, ipcMain } from 'electron'
 import log from 'electron-log/main'
+import type { FileCategory } from '../shared/types/enums'
 import { DB } from './database/init'
 import { bills, patients, payments } from './database/schema'
 
-const SETTINGS_FILENAME = 'settings.json'
-const SETTINGS_FILE = path.join(dirname(app.getPath('exe')), SETTINGS_FILENAME)
+const SETTINGS_FILE = path.join(
+  dirname(app.getPath('exe')),
+  process.env.MAIN_VITE_SETTINGS_FILE_NAME
+)
 
 async function getSettings(): Promise<AppConfig> {
   try {
@@ -16,7 +21,7 @@ async function getSettings(): Promise<AppConfig> {
     return JSON.parse(settings) as AppConfig
   } catch (error) {
     log.warn(
-      `${SETTINGS_FILENAME} will be created once the user changed the default settings.`
+      `${process.env.MAIN_VITE_SETTINGS_FILE_NAME} will be created once the user changed the default settings.`
     )
 
     // Return defaults
@@ -59,7 +64,11 @@ export function setListeners() {
     // Create a new folder named with a unique ID
     try {
       await fs.mkdir(
-        path.join(settings.patientDataFolder, result[0].id, 'uploads'),
+        path.join(
+          settings.patientDataFolder,
+          result[0].id,
+          process.env.MAIN_VITE_UPLOADS_FOLDER
+        ),
         { recursive: true }
       )
 
@@ -71,14 +80,13 @@ export function setListeners() {
   })
 
   ipcMain.handle('update-patient-record', async (_, fields: PatientFields) => {
+    console.log(fields)
     const result = await DB.update(patients)
       .set({
         ...fields,
         patientType: fields.patientType as string,
         birthdate: fields.birthdate as Date,
-        entryDateIfOld: fields.entryDate
-          ? (fields.entryDate as Date)
-          : undefined,
+        entryDateIfOld: fields.entryDate ? fields.entryDate : undefined,
       })
       .where(eq(patients.id, fields.id))
 
@@ -166,6 +174,86 @@ export function setListeners() {
 
     return !result
   })
+
+  ipcMain.on(
+    'upload-temp-file',
+    async (_, patientId: string, category: FileCategory, file: FileProps) => {
+      const mainWindow = BrowserWindow.getFocusedWindow()
+      const settings = await getSettings()
+      const tempFolder = path.join(
+        settings.patientDataFolder,
+        process.env.MAIN_VITE_TEMP_FOLDER
+      )
+      const destination = path.join(
+        tempFolder,
+        `${file.name}.${file.data.position}.part`
+      )
+      const buffer = Buffer.from(file.data.chunk)
+      const readStream = Readable.from(buffer)
+      let uploadedSize = file.data.position * buffer.length
+
+      try {
+        await fs.mkdir(tempFolder, { recursive: true })
+        const writeStream = createWriteStream(destination)
+
+        readStream.on('data', (chunk: Buffer) => {
+          uploadedSize += chunk.length
+
+          const progress = Math.floor(
+            (uploadedSize / (file.data.totalChunks * buffer.length)) * 100
+          )
+          mainWindow?.webContents.send('upload-progress', file.name, progress)
+        })
+
+        readStream.on('end', async () => {
+          // Check if all parts are uploaded
+          const files = await fs.readdir(tempFolder)
+          const partFiles = files.filter(
+            (f) => f.startsWith(file.name) && f.endsWith('.part')
+          )
+          const allPartsUploaded = partFiles.length === file.data.totalChunks
+
+          if (allPartsUploaded) {
+            const finalDestinationFolder = path.join(
+              settings.patientDataFolder,
+              patientId,
+              process.env.MAIN_VITE_UPLOADS_FOLDER,
+              category
+            )
+            const timestamp = Date.now()
+            const randomString = Math.random().toString(36).substring(2, 15)
+            const extension = path.extname(file.name)
+            const finalDestination = path.join(
+              finalDestinationFolder,
+              `${timestamp}_${randomString}${extension}`
+            )
+
+            // Create the destination folder if it does not exist
+            await fs.mkdir(finalDestinationFolder, { recursive: true })
+
+            const finalWriteStream = createWriteStream(finalDestination)
+
+            for (let i = 1; i <= file.data.totalChunks; ++i) {
+              const partPath = path.join(tempFolder, `${file.name}.${i}.part`)
+              const partBuffer = await fs.readFile(partPath)
+              finalWriteStream.write(partBuffer)
+              await fs.unlink(partPath)
+            }
+
+            finalWriteStream.end()
+            finalWriteStream.on('finish', () => {
+              mainWindow?.webContents.send('upload-complete')
+            })
+          }
+        })
+
+        readStream.pipe(writeStream)
+      } catch (error) {
+        log.error(error)
+        mainWindow?.webContents.send('upload-error', error)
+      }
+    }
+  )
 
   ipcMain.handle('get-settings', getSettings)
 

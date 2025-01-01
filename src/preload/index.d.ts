@@ -20,6 +20,19 @@ declare global {
       getBills: (id: string) => Promise<Bill[]>
       getBill: (id: string) => Promise<Bill>
       settleBill: (fields: SettleFields) => Promise<boolean>
+      uploadTempFile: (
+        patientId: string,
+        category: FileCategory,
+        file: FileProps
+      ) => void
+      onUploadComplete: (callback: () => void) => void
+      onUploadError: (callback: () => void) => void
+      onUploadProgress: (
+        callback: (fileName: string, progress: number) => void
+      ) => void
+      removeUploadProgressListener: (
+        callback: (fileName: string, progress: number) => void
+      ) => void
     }
   }
 }
