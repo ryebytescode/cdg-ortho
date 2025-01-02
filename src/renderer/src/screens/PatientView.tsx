@@ -1,4 +1,5 @@
 import { Tabs, rem } from '@mantine/core'
+import { FileManager } from '@renderer/components/FileManager'
 import { Profile } from '@renderer/components/Profile'
 import { Transaction } from '@renderer/components/Transaction'
 import {
@@ -59,7 +60,9 @@ export default function PatientView() {
         <Tabs.Panel value="transactions">
           <Transaction id={id as string} />
         </Tabs.Panel>
-        <Tabs.Panel value="files">Settings tab content</Tabs.Panel>
+        <Tabs.Panel value="files">
+          <FileManager id={id as string} />
+        </Tabs.Panel>
       </Tabs>
     </PageView>
   )
