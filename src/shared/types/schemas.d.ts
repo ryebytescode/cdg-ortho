@@ -26,6 +26,7 @@ interface Patient {
   phone: string
   address: string
   entryDateIfOld: number
+  files: File[]
 }
 
 interface BillFields {
@@ -73,6 +74,7 @@ interface SettleFields {
 }
 
 interface FileProps {
+  thumbnail: unknown
   data: {
     chunk: ArrayBuffer
     totalChunks: number
@@ -80,4 +82,14 @@ interface FileProps {
   }
   name: string
   size: number
+}
+
+interface File {
+  id: string
+  patientId: string
+  category: string
+  name: string
+  size: number
+  createdAt: string
+  thumbnail?: string | ArrayBuffer
 }
