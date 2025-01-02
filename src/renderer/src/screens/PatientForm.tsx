@@ -64,24 +64,26 @@ export default function PatientForm({ isEdit = false }: { isEdit?: boolean }) {
   const navigate = useNavigate()
   const methods = useForm<PatientFields>({
     resolver: zodResolver(AddPatientSchema),
-    defaultValues: isEdit
-      ? async () => {
-          const result = await window.api.getPatientProfile(id as string)
+    defaultValues: async () => {
+      if (isEdit) {
+        const result = await window.api.getPatientProfile(id as string)
 
-          if (result) {
-            return {
-              ...result,
-              id: id as string,
-              birthdate: new Date(result.birthdate),
-            }
+        if (result) {
+          console.log(result)
+          return {
+            ...result,
+            birthdate: new Date(result.birthdate),
+            entryDate: result.entryDateIfOld
+              ? new Date(result.entryDateIfOld)
+              : null,
           }
-
-          // fallback
-          return defaultValues
         }
-      : defaultValues,
+      }
+
+      return defaultValues
+    },
   })
-  const { control, handleSubmit, watch, resetField } = methods
+  const { control, register, handleSubmit, watch, resetField } = methods
   const loadingOverlayRef = useRef<ComponentRef<typeof LoadingOverlay>>(null)
   const patientType = watch('patientType')
 
@@ -89,7 +91,7 @@ export default function PatientForm({ isEdit = false }: { isEdit?: boolean }) {
     loadingOverlayRef.current?.show()
 
     const result = isEdit
-      ? await window.api.updatePatientRecord(fields)
+      ? await window.api.updatePatientRecord({ ...fields, id: id as string })
       : await window.api.createPatientRecord(fields)
 
     if (result) {
@@ -129,6 +131,7 @@ export default function PatientForm({ isEdit = false }: { isEdit?: boolean }) {
       <LoadingOverlay ref={loadingOverlayRef} />
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)}>
+          <input type="hidden" {...register('id')} />
           <Stack>
             <Controller
               control={control}
