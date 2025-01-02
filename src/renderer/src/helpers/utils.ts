@@ -8,9 +8,9 @@ export const statusColors: Record<string, MantineColor> = {
   paid: 'green',
 }
 
-const MAX_IMAGE_WIDTH = 1000
-const MAX_IMAGE_HEIGHT = 1000
-const IMAGE_QUALITY = 0.7
+const MAX_IMAGE_WIDTH = 3000
+const MAX_IMAGE_HEIGHT = 3000
+const IMAGE_QUALITY = 0.9
 
 export function truncateString(str, maxLength) {
   return str.length > maxLength ? `${str.slice(0, maxLength - 3)}...` : str
@@ -38,6 +38,10 @@ export function formatMoney(value: number) {
 
 export function formatDate(date: DateArg<Date> & {}) {
   return format(date, 'PPp')
+}
+
+export function capFirstLetter(str: string) {
+  return str[0].toUpperCase() + str.slice(1)
 }
 
 export function getStatus(totalDue: number, totalPaid: number) {
@@ -82,47 +86,76 @@ export interface FileInfo {
   objectURL: string
 }
 
-export async function compressImage(file: FileWithPath): Promise<FileInfo> {
+export async function compressImage(
+  file: FileWithPath
+): Promise<FileInfo | null> {
+  const img = await createImageBitmap(file)
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+
+  const { width, height } = calculateAspectRatioFit({
+    srcWidth: img.width,
+    srcHeight: img.height,
+    maxWidth: MAX_IMAGE_WIDTH,
+    maxHeight: MAX_IMAGE_HEIGHT,
+  })
+
+  canvas.width = width
+  canvas.height = height
+
+  ctx?.drawImage(img, 0, 0, width, height)
+
+  return new Promise((resolve) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve({
+            file: new File([blob], file.name, { ...file }),
+            objectURL: URL.createObjectURL(blob),
+          })
+        } else {
+          resolve(null)
+        }
+      },
+      'image/jpeg',
+      IMAGE_QUALITY
+    )
+  })
+}
+
+export const generateThumbnail = (file: FileWithPath): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.src = URL.createObjectURL(file)
+    if (file.type.startsWith('video/')) {
+      const video = document.createElement('video')
 
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
+      video.addEventListener('loadedmetadata', () => {
+        video.currentTime = video.duration / 2
 
-      if (!ctx) reject('Cannot obtain the canvas context')
+        video.addEventListener('seeked', () => {
+          const canvas = document.createElement('canvas')
 
-      const { width, height } = calculateAspectRatioFit({
-        srcWidth: img.width,
-        srcHeight: img.height,
-        maxWidth: MAX_IMAGE_WIDTH,
-        maxHeight: MAX_IMAGE_HEIGHT,
+          const scaleFactor = 0.5
+          canvas.width = video.videoWidth * scaleFactor
+          canvas.height = video.videoHeight * scaleFactor
+
+          const context = canvas.getContext('2d')
+          context?.drawImage(video, 0, 0, canvas.width, canvas.height)
+          resolve(canvas.toDataURL('image/png'))
+        })
       })
 
-      canvas.width = width
-      canvas.height = height
+      video.addEventListener('error', (error) => {
+        reject(error)
+      })
 
-      ctx?.drawImage(img, 0, 0, width, height)
-
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            resolve({
-              file: new File([blob], file.name, { ...file }),
-              objectURL: URL.createObjectURL(blob),
-            })
-          } else {
-            reject(new Error('Image compression failed'))
-          }
-        },
-        'image/jpeg',
-        IMAGE_QUALITY
-      )
-
-      URL.revokeObjectURL(img.src)
+      video.src = URL.createObjectURL(file)
+      video.load()
+    } else {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        resolve(event.target?.result as string)
+      }
+      reader.readAsDataURL(file)
     }
-
-    img.onerror = reject
   })
 }
