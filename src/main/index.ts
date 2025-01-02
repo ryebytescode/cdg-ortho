@@ -1,6 +1,6 @@
 import path, { dirname, join } from 'node:path'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import { BrowserWindow, app, shell } from 'electron'
+import { BrowserWindow, app, ipcMain, shell } from 'electron'
 import log from 'electron-log/main'
 import icon from '../../resources/icon.png?asset'
 import { setListeners } from './actions'
@@ -83,6 +83,8 @@ app.whenReady().then(() => {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
+  ipcMain.emit('clear-temp-folder')
+
   if (process.platform !== 'darwin') {
     app.quit()
   }
