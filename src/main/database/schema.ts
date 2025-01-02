@@ -1,6 +1,6 @@
 import { init as createCuid2 } from '@paralleldrive/cuid2'
 import { relations, sql } from 'drizzle-orm'
-import { int, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { blob, int, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 function createId() {
   return createCuid2({
@@ -64,9 +64,22 @@ export const payments = sqliteTable('payments', {
   paymentMode: text().notNull(),
 })
 
+export const files = sqliteTable('files', {
+  ...hasId,
+  patientId: text()
+    .notNull()
+    .references(() => patients.id, { onDelete: 'cascade' }),
+  category: text().notNull(),
+  name: text().notNull(),
+  size: real().notNull(),
+  createdAt: timeStamps.createdAt,
+  thumbnail: blob(),
+})
+
 // Relations
 export const patientRelations = relations(patients, ({ many }) => ({
   bills: many(bills),
+  files: many(files),
 }))
 
 export const billRelations = relations(bills, ({ one, many }) => ({
@@ -81,5 +94,12 @@ export const paymentRelations = relations(payments, ({ one }) => ({
   bill: one(bills, {
     fields: [payments.billId],
     references: [bills.id],
+  }),
+}))
+
+export const fileRelations = relations(files, ({ one }) => ({
+  patient: one(patients, {
+    fields: [files.patientId],
+    references: [patients.id],
   }),
 }))
