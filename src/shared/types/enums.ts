@@ -1,5 +1,5 @@
 export enum FileCategory {
-  photo = 'photos',
+  photos = 'photos',
   videos = 'videos',
-  doc = 'docs',
+  docs = 'docs',
 }
