@@ -2,12 +2,18 @@ import { createWriteStream } from 'node:fs'
 import fs from 'node:fs/promises'
 import path, { dirname } from 'node:path'
 import { Readable } from 'node:stream'
-import { eq, sql } from 'drizzle-orm'
+import { eq, or, sql } from 'drizzle-orm'
 import { BrowserWindow, app, dialog, ipcMain } from 'electron'
 import log from 'electron-log/main'
-import type { FileCategory } from '../shared/types/enums'
+import { FileCategory } from '../shared/types/enums'
 import { DB } from './database/init'
-import { bills, patients, payments } from './database/schema'
+import {
+  bills,
+  files,
+  files as filesTable,
+  patients,
+  payments,
+} from './database/schema'
 
 const SETTINGS_FILE = path.join(
   dirname(app.getPath('exe')),
@@ -32,6 +38,8 @@ async function getSettings(): Promise<AppConfig> {
 }
 
 export function setListeners() {
+  ipcMain.setMaxListeners(0)
+
   ipcMain.handle('open-folder-selector-dialog', async () => {
     const result = await dialog.showOpenDialog({
       title: 'Select data folder location',
@@ -80,13 +88,11 @@ export function setListeners() {
   })
 
   ipcMain.handle('update-patient-record', async (_, fields: PatientFields) => {
-    console.log(fields)
     const result = await DB.update(patients)
       .set({
         ...fields,
-        patientType: fields.patientType as string,
         birthdate: fields.birthdate as Date,
-        entryDateIfOld: fields.entryDate ? fields.entryDate : undefined,
+        entryDateIfOld: fields.entryDate,
       })
       .where(eq(patients.id, fields.id))
 
@@ -176,7 +182,7 @@ export function setListeners() {
   })
 
   ipcMain.on(
-    'upload-temp-file',
+    'upload-file',
     async (_, patientId: string, category: FileCategory, file: FileProps) => {
       const mainWindow = BrowserWindow.getFocusedWindow()
       const settings = await getSettings()
@@ -190,20 +196,20 @@ export function setListeners() {
       )
       const buffer = Buffer.from(file.data.chunk)
       const readStream = Readable.from(buffer)
-      let uploadedSize = file.data.position * buffer.length
+      // let uploadedSize = file.data.position * buffer.length
 
       try {
         await fs.mkdir(tempFolder, { recursive: true })
         const writeStream = createWriteStream(destination)
 
-        readStream.on('data', (chunk: Buffer) => {
-          uploadedSize += chunk.length
+        // readStream.on('data', (chunk: Buffer) => {
+        //   uploadedSize += chunk.length
 
-          const progress = Math.floor(
-            (uploadedSize / (file.data.totalChunks * buffer.length)) * 100
-          )
-          mainWindow?.webContents.send('upload-progress', file.name, progress)
-        })
+        //   const progress = Math.floor(
+        //     (uploadedSize / (file.data.totalChunks * buffer.length)) * 100
+        //   )
+        //   mainWindow?.webContents.send('upload-progress', file.name, progress)
+        // })
 
         readStream.on('end', async () => {
           // Check if all parts are uploaded
@@ -223,9 +229,13 @@ export function setListeners() {
             const timestamp = Date.now()
             const randomString = Math.random().toString(36).substring(2, 15)
             const extension = path.extname(file.name)
+            const destinationFilename =
+              category !== FileCategory.docs
+                ? `${timestamp}_${randomString}${extension}`
+                : file.name
             const finalDestination = path.join(
               finalDestinationFolder,
-              `${timestamp}_${randomString}${extension}`
+              destinationFilename
             )
 
             // Create the destination folder if it does not exist
@@ -241,8 +251,15 @@ export function setListeners() {
             }
 
             finalWriteStream.end()
-            finalWriteStream.on('finish', () => {
-              mainWindow?.webContents.send('upload-complete')
+
+            // Store file info in the database
+            await DB.insert(filesTable).values({
+              patientId,
+              category,
+              name: destinationFilename,
+              size: buffer.length,
+              thumbnail:
+                category === FileCategory.videos ? file.thumbnail : undefined,
             })
           }
         })
@@ -254,6 +271,27 @@ export function setListeners() {
       }
     }
   )
+
+  ipcMain.handle('clear-temp-folder', async () => {
+    const settings = await getSettings()
+    const tempFolder = path.join(
+      settings.patientDataFolder,
+      process.env.MAIN_VITE_TEMP_FOLDER
+    )
+
+    try {
+      const files = await fs.readdir(tempFolder)
+
+      for (const file of files) {
+        await fs.unlink(path.join(tempFolder, file))
+      }
+
+      return true
+    } catch (error) {
+      log.error(error)
+      return false
+    }
+  })
 
   ipcMain.handle('get-settings', getSettings)
 
@@ -269,4 +307,42 @@ export function setListeners() {
       return false
     }
   })
+
+  ipcMain.handle(
+    'get-files',
+    async (_, patientId: string, category: FileCategory): Promise<File[]> => {
+      const fileRecords = await DB.select()
+        .from(files)
+        .where(or(eq(files.patientId, patientId), eq(files.category, category)))
+
+      const settings = await getSettings()
+      const filesWithContent = await Promise.all(
+        fileRecords.map(async (fileRecord) => {
+          const filePath = path.join(
+            settings.patientDataFolder,
+            fileRecord.patientId,
+            process.env.MAIN_VITE_UPLOADS_FOLDER,
+            fileRecord.category,
+            fileRecord.name
+          )
+          let content: string | ArrayBuffer | null = null
+
+          if (category === FileCategory.photos) {
+            content = await fs.readFile(filePath, { encoding: 'base64' })
+          } else if (category === FileCategory.videos) {
+            content = fileRecord.thumbnail as string | ArrayBuffer | null
+          }
+
+          return {
+            ...fileRecord,
+            thumbnail: content,
+            lastModified: new Date(fileRecord.createdAt).getTime(),
+            path: filePath,
+          }
+        })
+      )
+
+      return filesWithContent as File[]
+    }
+  )
 }

@@ -35,16 +35,19 @@ const api = {
   settleBill: async (fields: SettleFields) => {
     return await ipcRenderer.invoke('settle-bill', fields)
   },
-  uploadTempFile: (
-    patientId: string,
-    category: FileCategory,
-    file: FileProps
-  ) => {
-    ipcRenderer.send('upload-temp-file', patientId, category, file)
+  uploadFile: (patientId: string, category: FileCategory, file: FileProps) => {
+    ipcRenderer.send('upload-file', patientId, category, file)
   },
 
-  onUploadComplete: (callback: () => void) => {
-    ipcRenderer.on('upload-complete', callback)
+  getFiles: async (patientId: string, category: FileCategory) => {
+    return await ipcRenderer.invoke('get-files', patientId, category)
+  },
+
+  onUploadComplete: (callback: (fileName: string) => void) => {
+    ipcRenderer.on(
+      'upload-complete',
+      (_: Electron.IpcRendererEvent, fileName: string) => callback(fileName)
+    )
   },
   onUploadError: (callback: () => void) => {
     ipcRenderer.on('upload-error', callback)

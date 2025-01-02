@@ -8,7 +8,7 @@ declare global {
     api: {
       openFolderSelectorDialog: () => Promise<string | null>
       createPatientRecord: (fields: PatientFields) => Promise<boolean>
-      updatePatientRecord: (fields: EditPatientFields) => Promise<boolean>
+      updatePatientRecord: (fields: PatientFields) => Promise<boolean>
       getPatients: () => Promise<Patient[]>
       getPatientProfile: (id: string) => Promise<Patient | null>
       getSettings: () => Promise<AppConfig>
@@ -20,12 +20,12 @@ declare global {
       getBills: (id: string) => Promise<Bill[]>
       getBill: (id: string) => Promise<Bill>
       settleBill: (fields: SettleFields) => Promise<boolean>
-      uploadTempFile: (
+      uploadFile: (
         patientId: string,
         category: FileCategory,
         file: FileProps
       ) => void
-      onUploadComplete: (callback: () => void) => void
+      onUploadComplete: (callback: (fileName: string) => void) => void
       onUploadError: (callback: () => void) => void
       onUploadProgress: (
         callback: (fileName: string, progress: number) => void
@@ -33,6 +33,7 @@ declare global {
       removeUploadProgressListener: (
         callback: (fileName: string, progress: number) => void
       ) => void
+      getFiles: (patientId: string, category: FileCategory) => Promise<File[]>
     }
   }
 }
