@@ -1,6 +1,6 @@
 import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge, ipcRenderer } from 'electron'
-import type { FileCategory } from '../shared/types/enums'
+import type { FileCategory } from '../shared/types/constants'
 
 // Custom APIs for renderer
 const api = {

@@ -1,3 +1,3 @@
 interface AppConfig {
-  patientDataFolder: string
+  appDataFolder: string
 }

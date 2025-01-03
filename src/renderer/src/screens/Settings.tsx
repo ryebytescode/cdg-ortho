@@ -46,7 +46,7 @@ export default function Settings() {
           <Group align="flex-end">
             <Controller
               control={control}
-              name="patientDataFolder"
+              name="appDataFolder"
               rules={{
                 required: true,
               }}
@@ -62,7 +62,7 @@ export default function Settings() {
                 />
               )}
             />
-            <Button onClick={() => handleFolderSelection('patientDataFolder')}>
+            <Button onClick={() => handleFolderSelection('appDataFolder')}>
               Select
             </Button>
           </Group>
