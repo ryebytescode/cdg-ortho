@@ -42,7 +42,7 @@ export function SettleModal({
   const {
     control,
     handleSubmit,
-    formState: { isSubmitting, errors },
+    formState: { isSubmitting },
   } = useForm<SettleFields>({
     defaultValues,
     resolver: zodResolver(SettleBillSchema),
