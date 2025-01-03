@@ -372,7 +372,6 @@ __metadata:
     electron-log: "npm:^5.2.4"
     electron-updater: "npm:^6.3.9"
     electron-vite: "npm:^2.3.0"
-    gen-env-types: "npm:^1.3.4"
     lefthook: "npm:^1.10.0"
     react: "npm:^19.0.0"
     react-dom: "npm:^19.0.0"
@@ -2442,11 +2441,11 @@ __metadata:
   linkType: hard
 
 "agentkeepalive@npm:^4.2.1":
-  version: 4.5.0
-  resolution: "agentkeepalive@npm:4.5.0"
+  version: 4.6.0
+  resolution: "agentkeepalive@npm:4.6.0"
   dependencies:
     humanize-ms: "npm:^1.2.1"
-  checksum: 10c0/394ea19f9710f230722996e156607f48fdf3a345133b0b1823244b7989426c16019a428b56c82d3eabef616e938812981d9009f4792ecc66bd6a59e991c62612
+  checksum: 10c0/235c182432f75046835b05f239708107138a40103deee23b6a08caee5136873709155753b394ec212e49e60e94a378189562cb01347765515cff61b692c69187
   languageName: node
   linkType: hard
 
@@ -4330,17 +4329,6 @@ __metadata:
     strip-ansi: "npm:^6.0.1"
     wide-align: "npm:^1.1.5"
   checksum: 10c0/ef10d7981113d69225135f994c9f8c4369d945e64a8fc721d655a3a38421b738c9fe899951721d1b47b73c41fdb5404ac87cc8903b2ecbed95d2800363e7e58c
-  languageName: node
-  linkType: hard
-
-"gen-env-types@npm:^1.3.4":
-  version: 1.3.4
-  resolution: "gen-env-types@npm:1.3.4"
-  dependencies:
-    chalk: "npm:^4.0.0"
-  bin:
-    gen-env-types: gen-env-types.js
-  checksum: 10c0/257af993fba3710a1c6a51d8759996fd413a74a2751979bf1928015fec49a7b47f4b63eedfe264094fd488b8b1d2b885ed2c7c3c96af9b9a5767b8da8091244e
   languageName: node
   linkType: hard
 

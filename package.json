@@ -3,8 +3,9 @@
 	"version": "1.0.0",
 	"description": "A desktop app for managing CDG orthodontic patients",
 	"main": "./out/main/index.js",
-	"author": "Gin Ryu Rabino",
+	"author": "Ryu Rabino (ryebytescode)",
 	"homepage": "https://electron-vite.org",
+	"private": true,
 	"scripts": {
 		"lint": "biome check --write .",
 		"format": "biome format --write .",
@@ -19,13 +20,10 @@
 		"build:win": "yarn build && electron-builder --win",
 		"build:mac": "electron-vite build && electron-builder --mac",
 		"build:linux": "electron-vite build && electron-builder --linux",
-		"db:generate:dev": "drizzle-kit generate --config=drizzle-dev.config.ts",
-		"db:generate:prod": "drizzle-kit generate --config=drizzle-prod.config.ts",
-		"db:migrate:dev": "drizzle-kit migrate --config=drizzle-dev.config.ts",
-		"db:migrate:prod": "drizzle-kit migrate --config=drizzle-prod.config.ts",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
-		"db:push:dev": "drizzle-kit push --config=drizzle-dev.config.ts",
-		"gen-env-types": "gen-env-types ./.env -o ./src/shared/types/env.d.ts"
+		"db:push": "drizzle-kit push"
 	},
 	"dependencies": {
 		"@electron-toolkit/preload": "^3.0.1",
@@ -44,6 +42,7 @@
 		"dayjs": "^1.11.13",
 		"dotenv": "^16.4.7",
 		"drizzle-orm": "^0.38.3",
+		"electron-builder": "^25.1.8",
 		"electron-log": "^5.2.4",
 		"electron-updater": "^6.3.9",
 		"react-hook-form": "^7.54.2",
@@ -63,7 +62,6 @@
 		"electron": "^33.2.1",
 		"electron-builder": "^25.1.8",
 		"electron-vite": "^2.3.0",
-		"gen-env-types": "^1.3.4",
 		"lefthook": "^1.10.0",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
