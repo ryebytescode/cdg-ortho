@@ -1,22 +1,13 @@
-import path, { dirname, join } from 'node:path'
+import { join } from 'node:path'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { BrowserWindow, app, ipcMain, shell } from 'electron'
-import log from 'electron-log/main'
 import icon from '../../resources/icon.png?asset'
-import { setListeners } from './actions'
+import { registerHandlers } from './actions'
+import './database/connection'
+import './logger'
+import { Logger } from './logger'
 
-// Init logger
-log.initialize()
-log.transports.file.maxSize = 5242880 // 5 mb
-log.transports.file.resolvePathFn = (vars) =>
-  path.join(
-    dirname(app.getPath('exe')),
-    'logs',
-    // biome-ignore lint/style/noNonNullAssertion:
-    vars.fileName!
-  )
-
-function createWindow(): void {
+function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     title: 'CDG Ortho',
@@ -67,7 +58,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  setListeners()
+  registerHandlers()
   createWindow()
 
   app.on('activate', () => {
@@ -76,7 +67,7 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 
-  log.info('App started')
+  Logger.info('App started')
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -89,7 +80,7 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 
-  log.info('App closed')
+  Logger.info('App closed')
 })
 
 // In this file you can include the rest of your app"s specific main process
