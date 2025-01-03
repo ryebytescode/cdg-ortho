@@ -1,6 +1,6 @@
 import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge, ipcRenderer } from 'electron'
-import type { FileCategory } from '../shared/types/constants'
+import type { FileCategory } from '../shared/constants'
 
 // Custom APIs for renderer
 const api = {

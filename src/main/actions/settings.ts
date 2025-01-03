@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import path, { dirname } from 'node:path'
 import { app, ipcMain } from 'electron'
 import Logger from 'electron-log'
-import { SETTINGS_FILE } from '../../shared/types/constants'
+import { SETTINGS_FILE } from '../../shared/constants'
 import { getSettings } from '../utils'
 
 export function registerSettingsHandlers() {

@@ -9,7 +9,7 @@ import {
   FileCategory,
   TEMP_FOLDER,
   UPLOADS_FOLDER,
-} from '../../shared/types/constants'
+} from '../../shared/constants'
 import { DB } from '../database/connection'
 import { files as filesTable } from '../database/schema'
 import { getSettings } from '../utils'

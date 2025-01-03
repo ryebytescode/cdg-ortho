@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import fs from 'node:fs/promises'
 import path, { dirname } from 'node:path'
 import { app } from 'electron'
-import { APP_NAME, SETTINGS_FILE } from '../shared/types/constants'
+import { APP_NAME, SETTINGS_FILE } from '../shared/constants'
 
 const defaultSettings: AppConfig = {
   appDataFolder: path.join(app.getPath('appData'), APP_NAME),

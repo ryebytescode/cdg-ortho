@@ -2,7 +2,7 @@ import path from 'node:path'
 import { createClient } from '@libsql/client'
 import { drizzle } from 'drizzle-orm/libsql'
 import { app } from 'electron'
-import { BUILD_FOLDER, DB_FILE_NAME } from '../../shared/types/constants'
+import { BUILD_FOLDER, DB_FILE_NAME } from '../../shared/constants'
 import * as schema from './schema'
 
 export function initializeDatabase() {
