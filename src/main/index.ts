@@ -6,6 +6,7 @@ import { registerHandlers } from './actions'
 import './database/connection'
 import './logger'
 import { Logger } from './logger'
+import './file-server'
 
 function createWindow() {
   // Create the browser window.
