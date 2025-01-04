@@ -25,15 +25,10 @@ declare global {
         category: FileCategory,
         file: FileProps
       ) => void
-      onUploadComplete: (callback: (fileName: string) => void) => void
-      onUploadError: (callback: () => void) => void
-      onUploadProgress: (
-        callback: (fileName: string, progress: number) => void
-      ) => void
-      removeUploadProgressListener: (
-        callback: (fileName: string, progress: number) => void
-      ) => void
-      getFiles: (patientId: string, category: FileCategory) => Promise<File[]>
+      getFilesInfo: (
+        patientId: string,
+        category: FileCategory
+      ) => Promise<File[]>
     }
   }
 }

@@ -39,35 +39,8 @@ const api = {
     ipcRenderer.send('upload-file', patientId, category, file)
   },
 
-  getFiles: async (patientId: string, category: FileCategory) => {
-    return await ipcRenderer.invoke('get-files', patientId, category)
-  },
-
-  onUploadComplete: (callback: (fileName: string) => void) => {
-    ipcRenderer.on(
-      'upload-complete',
-      (_: Electron.IpcRendererEvent, fileName: string) => callback(fileName)
-    )
-  },
-  onUploadError: (callback: () => void) => {
-    ipcRenderer.on('upload-error', callback)
-  },
-  onUploadProgress: (
-    callback: (fileName: string, progress: number) => void
-  ) => {
-    ipcRenderer.on('upload-progress', (_, fileName, progress) =>
-      callback(fileName, progress)
-    )
-  },
-  removeUploadProgressListener: (
-    callback: (fileName: string, progress: number) => void
-  ) => {
-    const wrappedCallback = (
-      _: Electron.IpcRendererEvent,
-      fileName: string,
-      progress: number
-    ) => callback(fileName, progress)
-    ipcRenderer.removeListener('upload-progress', wrappedCallback)
+  getFilesInfo: async (patientId: string, category: FileCategory) => {
+    return await ipcRenderer.invoke('get-files-info', patientId, category)
   },
 
   getSettings: async () => {
