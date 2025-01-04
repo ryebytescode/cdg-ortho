@@ -44,15 +44,15 @@ export default function App() {
           />
           <Route
             path="/photos/:patientId"
-            element={<PhotoManager category={FileCategory.photos} />}
+            element={<PhotoManager category={FileCategory.PHOTOS} />}
           />
           <Route
             path="/videos/:patientId"
-            element={<PhotoManager category={FileCategory.videos} />}
+            element={<PhotoManager category={FileCategory.VIDEOS} />}
           />
           <Route
             path="/docs/:patientId"
-            element={<PhotoManager category={FileCategory.docs} />}
+            element={<PhotoManager category={FileCategory.DOCS} />}
           />
         </Routes>
       </BrowserRouter>
