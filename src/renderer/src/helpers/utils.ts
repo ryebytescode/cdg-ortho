@@ -1,6 +1,6 @@
 import type { MantineColor } from '@mantine/core'
 import type { FileWithPath } from '@mantine/dropzone'
-import { FILE_SERVER_PORT } from '@shared/constants'
+import { FILE_SERVER_URL } from '@shared/constants'
 import { type DateArg, format } from 'date-fns'
 
 export const statusColors: Record<string, MantineColor> = {
@@ -166,5 +166,5 @@ export const getThumbnailUrl = (
   category: string,
   fileName: string
 ): string => {
-  return `http://localhost:${FILE_SERVER_PORT}/files/${patientId}/${category}/${fileName}`
+  return `${FILE_SERVER_URL}/${patientId}/${category}/${fileName}?thumbnail=true`
 }
