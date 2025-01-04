@@ -13,6 +13,7 @@ const app = express()
 
 app.get('/files/:patientId/:category/:fileName', async (req, res) => {
   const { patientId, category, fileName } = req.params
+  const thumbnail = Boolean(req.query.thumbnail) ?? false
 
   if (category === FileCategory.PHOTOS) {
     const settings = await getSettings()
@@ -32,36 +33,70 @@ app.get('/files/:patientId/:category/:fileName', async (req, res) => {
   }
 
   if (category === FileCategory.VIDEOS) {
-    const result = await DB.query.files.findFirst({
-      columns: {
-        name: true,
-        thumbnail: true,
-      },
-      where: (files, { eq, and }) =>
-        and(
-          eq(files.patientId, patientId),
-          eq(files.category, category),
-          eq(files.name, fileName)
-        ),
-      orderBy: (files, { desc }) => [desc(files.createdAt)],
-    })
+    if (thumbnail) {
+      const result = await DB.query.files.findFirst({
+        columns: {
+          name: true,
+          thumbnail: true,
+        },
+        where: (files, { eq, and }) =>
+          and(
+            eq(files.patientId, patientId),
+            eq(files.category, category),
+            eq(files.name, fileName)
+          ),
+        orderBy: (files, { desc }) => [desc(files.createdAt)],
+      })
 
-    if (!result || !result.thumbnail) {
-      return res.status(404).send('Thumbnail not found')
+      if (!result || !result.thumbnail) {
+        return res.status(404).send('Thumbnail not found')
+      }
+
+      const base64Data = (result.thumbnail as string).replace(
+        /^data:image\/\w+;base64,/,
+        ''
+      )
+      const imgBuffer = Buffer.from(base64Data, 'base64')
+
+      res.writeHead(200, {
+        'Content-Type': 'image/png',
+        'Content-Length': imgBuffer.length,
+      })
+
+      return res.end(imgBuffer)
     }
 
-    const base64Data = (result.thumbnail as string).replace(
-      /^data:image\/\w+;base64,/,
-      ''
+    const settings = await getSettings()
+    const filePath = path.join(
+      settings.appDataFolder,
+      patientId,
+      UPLOADS_FOLDER,
+      category,
+      fileName
     )
-    const imgBuffer = Buffer.from(base64Data, 'base64')
 
-    res.writeHead(200, {
-      'Content-Type': 'image/png',
-      'Content-Length': imgBuffer.length,
+    return res.sendFile(filePath, (err) => {
+      if (err) {
+        res.status(404).send('File not found')
+      }
     })
+  }
 
-    return res.end(imgBuffer)
+  if (category === FileCategory.DOCS) {
+    const settings = await getSettings()
+    const filePath = path.join(
+      settings.appDataFolder,
+      patientId,
+      UPLOADS_FOLDER,
+      category,
+      fileName
+    )
+
+    return res.sendFile(filePath, (err) => {
+      if (err) {
+        res.status(404).send('File not found')
+      }
+    })
   }
 
   res.status(404).send('File not found')
