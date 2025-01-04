@@ -9,9 +9,15 @@ import {
 export default defineConfig({
   main: {
     plugins: [bytecodePlugin(), externalizeDepsPlugin()],
+    build: {
+      outDir: 'dist/main',
+    },
   },
   preload: {
     plugins: [bytecodePlugin(), externalizeDepsPlugin()],
+    build: {
+      outDir: 'dist/preload',
+    },
   },
   renderer: {
     resolve: {
@@ -21,5 +27,8 @@ export default defineConfig({
       },
     },
     plugins: [react()],
+    build: {
+      outDir: 'dist/renderer',
+    },
   },
 })
