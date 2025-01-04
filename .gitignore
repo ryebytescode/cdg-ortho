@@ -8,3 +8,4 @@ migrations
 data
 .vscode
 .yarn
+*.db
