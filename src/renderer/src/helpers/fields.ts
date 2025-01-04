@@ -49,9 +49,11 @@ export const AddPatientSchema: ZodType<Omit<PatientFields, 'id' | 'suffix'>> = z
         patterns.phone,
         'Invalid format. Should be in the form 0912 345 6789'
       ),
-    address: z.string({
-      required_error: 'This is required.',
-    }),
+    address: z
+      .string({
+        required_error: 'This is required.',
+      })
+      .min(1, 'This is required.'),
   })
   .refine((input) => input.patientType === 'new' || input.entryDate !== null, {
     message: 'Select the date of entry.',
