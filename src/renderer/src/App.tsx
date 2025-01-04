@@ -4,6 +4,7 @@ import '@mantine/dates/styles.css'
 import '@mantine/dropzone/styles.css'
 import { Notifications } from '@mantine/notifications'
 import '@mantine/notifications/styles.css'
+import { ModalsProvider } from '@mantine/modals'
 import { FileCategory } from '@shared/constants'
 import log from 'electron-log/renderer'
 import { useEffect } from 'react'
@@ -24,38 +25,40 @@ export default function App() {
 
   return (
     <MantineProvider defaultColorScheme="dark">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/new" element={<PatientForm />} />
-          <Route path="/patients" element={<Patients />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/patient/:id" element={<PatientView />} />
-          <Route path="/patient/:id/:tab?" element={<PatientView />} />
-          <Route
-            path="/patient/:id/edit"
-            element={<PatientForm isEdit={true} />}
-          />
-          <Route path="/bill/:patientId/:billId" element={<BillView />} />
-          <Route path="/bill/:patientId/new" element={<BillForm />} />
-          <Route
-            path="/bill/:patientId/:billId/edit"
-            element={<BillForm isEdit={true} />}
-          />
-          <Route
-            path="/photos/:patientId"
-            element={<PhotoManager category={FileCategory.PHOTOS} />}
-          />
-          <Route
-            path="/videos/:patientId"
-            element={<PhotoManager category={FileCategory.VIDEOS} />}
-          />
-          <Route
-            path="/docs/:patientId"
-            element={<PhotoManager category={FileCategory.DOCS} />}
-          />
-        </Routes>
-      </BrowserRouter>
+      <ModalsProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/new" element={<PatientForm />} />
+            <Route path="/patients" element={<Patients />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/patient/:id" element={<PatientView />} />
+            <Route path="/patient/:id/:tab?" element={<PatientView />} />
+            <Route
+              path="/patient/:id/edit"
+              element={<PatientForm isEdit={true} />}
+            />
+            <Route path="/bill/:patientId/:billId" element={<BillView />} />
+            <Route path="/bill/:patientId/new" element={<BillForm />} />
+            <Route
+              path="/bill/:patientId/:billId/edit"
+              element={<BillForm isEdit={true} />}
+            />
+            <Route
+              path="/photos/:patientId"
+              element={<PhotoManager category={FileCategory.PHOTOS} />}
+            />
+            <Route
+              path="/videos/:patientId"
+              element={<PhotoManager category={FileCategory.VIDEOS} />}
+            />
+            <Route
+              path="/docs/:patientId"
+              element={<PhotoManager category={FileCategory.DOCS} />}
+            />
+          </Routes>
+        </BrowserRouter>
+      </ModalsProvider>
       <Notifications limit={3} position="top-right" />
     </MantineProvider>
   )
