@@ -29,6 +29,7 @@ declare global {
         patientId: string,
         category: FileCategory
       ) => Promise<File[]>
+      deleteFile: (fileId: string) => Promise<boolean>
     }
   }
 }

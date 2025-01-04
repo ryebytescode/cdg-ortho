@@ -2,6 +2,7 @@ import { createWriteStream } from 'node:fs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { Readable } from 'node:stream'
+import { eq } from 'drizzle-orm'
 import { BrowserWindow, dialog, ipcMain } from 'electron'
 import Logger from 'electron-log'
 import {
@@ -10,7 +11,7 @@ import {
   UPLOADS_FOLDER,
 } from '../../shared/constants'
 import { DB } from '../database/connection'
-import { files as filesTable } from '../database/schema'
+import { files, files as filesTable } from '../database/schema'
 import { getSettings } from '../utils'
 
 export function registerFileSystemHandlers() {
@@ -143,6 +144,34 @@ export function registerFileSystemHandlers() {
       return filesWithContent as File[]
     }
   )
+
+  ipcMain.handle('delete-file', async (_, fileId: string) => {
+    const fileRecord = await DB.query.files.findFirst({
+      where: (files, { eq }) => eq(files.id, fileId),
+    })
+
+    if (!fileRecord) {
+      return false
+    }
+
+    const settings = await getSettings()
+    const filePath = path.join(
+      settings.appDataFolder,
+      fileRecord.patientId,
+      UPLOADS_FOLDER,
+      fileRecord.category,
+      fileRecord.name
+    )
+
+    try {
+      await fs.unlink(filePath)
+      await DB.delete(files).where(eq(files.id, fileId))
+      return true
+    } catch (error) {
+      Logger.error(error)
+      return false
+    }
+  })
 
   ipcMain.handle('clear-temp-folder', async () => {
     const settings = await getSettings()

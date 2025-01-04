@@ -42,6 +42,9 @@ const api = {
   getFilesInfo: async (patientId: string, category: FileCategory) => {
     return await ipcRenderer.invoke('get-files-info', patientId, category)
   },
+  deleteFile: async (fileId: string) => {
+    return await ipcRenderer.invoke('delete-file', fileId)
+  },
 
   getSettings: async () => {
     return await ipcRenderer.invoke('get-settings')
