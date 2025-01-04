@@ -35,7 +35,13 @@ export function Profile({ id }: { id: string }) {
             </Table.Tr>
             <Table.Tr>
               <Table.Th>Date Created</Table.Th>
-              <Table.Td>{formatDate(patientData?.createdAt)}</Table.Td>
+              <Table.Td>
+                {formatDate(
+                  patientData.patientType === 'old'
+                    ? patientData?.entryDateIfOld
+                    : patientData?.createdAt
+                )}
+              </Table.Td>
             </Table.Tr>
             <Table.Tr>
               <Table.Th>Full Name</Table.Th>
