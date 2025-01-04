@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import { init as createCuid2 } from '@paralleldrive/cuid2'
 import { relations, sql } from 'drizzle-orm'
 import { blob, int, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
@@ -5,7 +6,7 @@ import { blob, int, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 function createId() {
   return createCuid2({
     length: 32,
-    fingerprint: process.env.MAIN_VITE_CUID2_FINGERPRINT,
+    fingerprint: crypto.randomUUID(),
   })()
 }
 
