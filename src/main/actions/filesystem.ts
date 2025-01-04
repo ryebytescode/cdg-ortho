@@ -2,7 +2,6 @@ import { createWriteStream } from 'node:fs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { Readable } from 'node:stream'
-import { eq, or } from 'drizzle-orm'
 import { BrowserWindow, dialog, ipcMain } from 'electron'
 import Logger from 'electron-log'
 import {
@@ -40,23 +39,12 @@ export function registerFileSystemHandlers() {
       )
       const buffer = Buffer.from(file.data.chunk)
       const readStream = Readable.from(buffer)
-      // let uploadedSize = file.data.position * buffer.length
 
       try {
         await fs.mkdir(tempFolder, { recursive: true })
         const writeStream = createWriteStream(destination)
 
-        // readStream.on('data', (chunk: Buffer) => {
-        //   uploadedSize += chunk.length
-
-        //   const progress = Math.floor(
-        //     (uploadedSize / (file.data.totalChunks * buffer.length)) * 100
-        //   )
-        //   mainWindow?.webContents.send('upload-progress', file.name, progress)
-        // })
-
         readStream.on('end', async () => {
-          // Check if all parts are uploaded
           const files = await fs.readdir(tempFolder)
           const partFiles = files.filter(
             (f) => f.startsWith(file.name) && f.endsWith('.part')
@@ -74,7 +62,7 @@ export function registerFileSystemHandlers() {
             const randomString = Math.random().toString(36).substring(2, 15)
             const extension = path.extname(file.name)
             const destinationFilename =
-              category !== FileCategory.docs
+              category !== FileCategory.DOCS
                 ? `${timestamp}_${randomString}${extension}`
                 : file.name
             const finalDestination = path.join(
@@ -82,7 +70,6 @@ export function registerFileSystemHandlers() {
               destinationFilename
             )
 
-            // Create the destination folder if it does not exist
             await fs.mkdir(finalDestinationFolder, { recursive: true })
 
             const finalWriteStream = createWriteStream(finalDestination)
@@ -94,16 +81,22 @@ export function registerFileSystemHandlers() {
               await fs.unlink(partPath)
             }
 
-            finalWriteStream.end()
+            finalWriteStream.on('error', (error) => {
+              Logger.error(error)
+              mainWindow?.webContents.send('upload-error', error)
+            })
 
-            // Store file info in the database
-            await DB.insert(filesTable).values({
-              patientId,
-              category,
-              name: destinationFilename,
-              size: buffer.length,
-              thumbnail:
-                category === FileCategory.videos ? file.thumbnail : undefined,
+            finalWriteStream.end(async () => {
+              await DB.insert(filesTable).values({
+                patientId,
+                category,
+                name: destinationFilename,
+                size: buffer.length,
+                thumbnail:
+                  category === FileCategory.VIDEOS ? file.thumbnail : undefined,
+              })
+
+              mainWindow?.webContents.send('upload-complete', file.name)
             })
           }
         })
@@ -117,16 +110,16 @@ export function registerFileSystemHandlers() {
   )
 
   ipcMain.handle(
-    'get-files',
+    'get-files-info',
     async (_, patientId: string, category: FileCategory): Promise<File[]> => {
-      const fileRecords = await DB.select()
-        .from(filesTable)
-        .where(
-          or(
+      const fileRecords = await DB.query.files.findMany({
+        where: (filesTable, { eq, and }) =>
+          and(
             eq(filesTable.patientId, patientId),
             eq(filesTable.category, category)
-          )
-        )
+          ),
+        orderBy: (filesTable, { desc }) => [desc(filesTable.createdAt)],
+      })
 
       const settings = await getSettings()
       const filesWithContent = await Promise.all(
@@ -138,17 +131,9 @@ export function registerFileSystemHandlers() {
             fileRecord.category,
             fileRecord.name
           )
-          let content: string | ArrayBuffer | null = null
-
-          if (category === FileCategory.photos) {
-            content = await fs.readFile(filePath, { encoding: 'base64' })
-          } else if (category === FileCategory.videos) {
-            content = fileRecord.thumbnail as string | ArrayBuffer | null
-          }
 
           return {
             ...fileRecord,
-            thumbnail: content,
             lastModified: new Date(fileRecord.createdAt).getTime(),
             path: filePath,
           }
