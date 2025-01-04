@@ -1,15 +1,20 @@
-import path from 'node:path'
 import { createClient } from '@libsql/client'
+import 'dotenv/config'
+import path from 'node:path'
 import { drizzle } from 'drizzle-orm/libsql'
 import { app } from 'electron'
 import { BUILD_FOLDER, DB_FILE_NAME } from '../../shared/constants'
 import * as schema from './schema'
 
 export function initializeDatabase() {
-  const databaseFolder = path.join(app.getAppPath(), BUILD_FOLDER)
-  const databaseUrl = `file:${path.join(databaseFolder, DB_FILE_NAME)}.db`
+  const databaseFolder = !app.isPackaged
+    ? path.join(app.getAppPath(), BUILD_FOLDER)
+    : app.getPath('userData')
+  const databaseClient = createClient({
+    url: `file:${path.join(databaseFolder, DB_FILE_NAME)}.db`,
+  })
 
-  return drizzle(createClient({ url: databaseUrl }), { schema })
+  return drizzle(databaseClient, { schema })
 }
 
 export const DB = initializeDatabase()
