@@ -6,9 +6,15 @@ import { useNavigate } from 'react-router'
 interface PageViewProps extends PropsWithChildren {
   title: string
   backTo?: string
+  isLoading?: boolean
 }
 
-export function PageView({ title, children, backTo }: PageViewProps) {
+export function PageView({
+  title,
+  children,
+  backTo,
+  isLoading = false,
+}: PageViewProps) {
   const navigate = useNavigate()
 
   return (
@@ -16,6 +22,7 @@ export function PageView({ title, children, backTo }: PageViewProps) {
       <Stack>
         <Group gap="xl">
           <ActionIcon
+            disabled={isLoading}
             onClick={() => {
               backTo ? navigate(backTo) : navigate(-1)
             }}
