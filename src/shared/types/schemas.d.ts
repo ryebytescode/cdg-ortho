@@ -93,3 +93,12 @@ interface File {
   createdAt: string
   thumbnail?: string | ArrayBuffer
 }
+
+interface FileInfo {
+  id: string
+  patientId: string
+  category: string
+  name: string
+  size: number
+  createdAt: string
+}
