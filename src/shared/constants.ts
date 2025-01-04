@@ -6,6 +6,7 @@ export const UPLOADS_FOLDER = 'uploads'
 export const LOGS_FOLDER = 'logs'
 export const BUILD_FOLDER = 'build'
 export const FILE_SERVER_PORT = 3245
+export const FILE_SERVER_URL = `http://localhost:${FILE_SERVER_PORT}/files`
 
 export enum FileCategory {
   PHOTOS = 'photos',
