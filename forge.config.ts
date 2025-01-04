@@ -1,7 +1,7 @@
 import { MakerDMG } from '@electron-forge/maker-dmg'
 import { MakerSquirrel } from '@electron-forge/maker-squirrel'
 import type { ForgeConfig } from '@electron-forge/shared-types'
-import { DB_FILE_NAME } from './src/shared/types/constants'
+import { DB_FILE_NAME } from './src/shared/constants'
 
 const config: ForgeConfig = {
   packagerConfig: {

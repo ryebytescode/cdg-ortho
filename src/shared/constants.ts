@@ -4,12 +4,25 @@ export const SETTINGS_FILE = 'settings.json'
 export const TEMP_FOLDER = 'temp'
 export const UPLOADS_FOLDER = 'uploads'
 export const LOGS_FOLDER = 'logs'
-export const DATA_FOLDER = 'data'
-export const APP_FOLDER = 'app'
 export const BUILD_FOLDER = 'build'
+export const FILE_SERVER_PORT = 3245
 
 export enum FileCategory {
-  photos = 'photos',
-  videos = 'videos',
-  docs = 'docs',
+  PHOTOS = 'photos',
+  VIDEOS = 'videos',
+  DOCS = 'docs',
+}
+
+export enum DocumentType {
+  DOC = 'doc',
+  DOCX = 'docx',
+  PDF = 'pdf',
+  CSV = 'csv',
+}
+
+export const documentTypeMap: Record<DocumentType, string> = {
+  [DocumentType.DOC]: 'doc',
+  [DocumentType.DOCX]: 'docx',
+  [DocumentType.PDF]: 'pdf',
+  [DocumentType.CSV]: 'csv',
 }
