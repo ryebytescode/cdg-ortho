@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Card,
   Group,
   Image as MTImage,
@@ -13,21 +14,25 @@ import {
   type DropzoneProps,
   type FileRejection,
   type FileWithPath,
-  MIME_TYPES,
-  MS_WORD_MIME_TYPE,
   PDF_MIME_TYPE,
 } from '@mantine/dropzone'
+import { modals } from '@mantine/modals'
 import { notifications } from '@mantine/notifications'
 import { FileIcon } from '@renderer/components/FileIcon'
+import {
+  FileViewer,
+  type FileViewerHandleProps,
+} from '@renderer/components/FileViewer'
 import { LoadingOverlay } from '@renderer/components/LoadingOverlay'
 import { PageView } from '@renderer/components/PageView'
 import {
   capFirstLetter,
+  formatDate,
   generateThumbnail,
   getThumbnailUrl,
 } from '@renderer/helpers/utils'
 import { FileCategory, documentTypeMap } from '@shared/constants'
-import { IconPhoto, IconUpload, IconX } from '@tabler/icons-react'
+import { IconPhoto, IconTrash, IconUpload, IconX } from '@tabler/icons-react'
 import { type ComponentRef, useEffect, useRef, useState } from 'react'
 import Masonry, { ResponsiveMasonry } from 'react-responsive-masonry'
 import { useParams } from 'react-router'
@@ -35,7 +40,8 @@ import { useParams } from 'react-router'
 const mimeTypes: Record<FileCategory, DropzoneProps['accept']> = {
   photos: ['image/jpeg', 'image/png'],
   videos: ['video/mp4', 'video/mpeg', 'video/avi'],
-  docs: [...MS_WORD_MIME_TYPE, ...PDF_MIME_TYPE, MIME_TYPES.csv],
+  docs: PDF_MIME_TYPE,
+  // docs: [...MS_WORD_MIME_TYPE, ...PDF_MIME_TYPE, MIME_TYPES.csv],
 }
 
 const CHUNK_SIZE = 1_048_576 // 1 MB
@@ -50,15 +56,25 @@ export default function PhotoManager({ category }: { category: FileCategory }) {
     {}
   )
   const loadingOverlayRef = useRef<ComponentRef<typeof LoadingOverlay>>(null)
+  const fileViewerRef = useRef<FileViewerHandleProps>(null)
+  const [selectedFile, setSelectedFile] = useState<FileInfo | null>(null)
+
+  const handlePreviewClick = (file: FileInfo) => {
+    setSelectedFile(file)
+    fileViewerRef.current?.show()
+  }
 
   useEffect(() => {
+    loadingOverlayRef.current?.show()
+
     const fetchFiles = async () => {
       const files = await window.api.getFilesInfo(patientId as string, category)
       const newPreviews = files.map((file) => ({
-        file: { ...file, path: '', id: '', patientId: '' },
+        file,
         thumbnail: getThumbnailUrl(patientId as string, category, file.name),
       }))
       setPreviews(newPreviews)
+      loadingOverlayRef.current?.hide()
     }
 
     fetchFiles()
@@ -165,6 +181,42 @@ export default function PhotoManager({ category }: { category: FileCategory }) {
     }
   }
 
+  const handleDelete = async (fileId: string) => {
+    modals.openConfirmModal({
+      title: 'Delete file',
+      children: <Text>Are you sure you want to delete this file?</Text>,
+      onConfirm: async () => {
+        loadingOverlayRef.current?.show()
+        const result = await window.api.deleteFile(fileId)
+        loadingOverlayRef.current?.hide()
+
+        if (result) {
+          // Optimistic update
+          setPreviews((prev) => prev.filter(({ file }) => file.id !== fileId))
+
+          notifications.show({
+            title: 'File deleted',
+            message: 'File deleted successfully',
+            color: 'green',
+          })
+        } else {
+          notifications.show({
+            title: 'Failed to delete file',
+            message: 'An error occurred while deleting the file',
+            color: 'red',
+          })
+        }
+      },
+      labels: {
+        confirm: 'Delete',
+        cancel: 'Cancel',
+      },
+      confirmProps: {
+        color: 'red',
+      },
+    })
+  }
+
   return (
     <PageView
       title={capFirstLetter(category)}
@@ -227,45 +279,81 @@ export default function PhotoManager({ category }: { category: FileCategory }) {
       <Paper mt="md">
         <ResponsiveMasonry columnsCountBreakPoints={{ 350: 1, 750: 2, 900: 3 }}>
           <Masonry gutter={18} sequential={true}>
-            {previews.map(({ file, thumbnail }) =>
-              category === FileCategory.DOCS ? (
-                <Card key={file.name} withBorder w="100%">
-                  <FileIcon
-                    type={documentTypeMap[file.name.split('.').pop() as string]}
-                    size={32}
-                  />
-                  <Text>{file.name}</Text>
-                </Card>
-              ) : (
-                <Paper
-                  key={file.name}
-                  style={{
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}
-                  radius="sm"
-                >
-                  <MTImage
-                    src={thumbnail}
-                    alt={file.name}
-                    onLoad={() => URL.revokeObjectURL(thumbnail)}
-                  />
-                  {uploadProgress[file.name] < 100 && (
-                    <Overlay backgroundOpacity={0.6} zIndex={5} blur={3} center>
-                      <Progress
-                        value={uploadProgress[file.name]}
-                        size="xl"
-                        transitionDuration={500}
-                        w="90%"
-                      />
-                    </Overlay>
-                  )}
-                </Paper>
-              )
-            )}
+            {previews.map(({ file, thumbnail }) => (
+              <Card key={file.name} withBorder w="100%">
+                {category === FileCategory.DOCS ? (
+                  <Group
+                    py="md"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() =>
+                      handlePreviewClick({
+                        ...file,
+                        patientId: patientId as string,
+                      })
+                    }
+                  >
+                    <FileIcon
+                      type={
+                        documentTypeMap[file.name.split('.').pop() as string]
+                      }
+                      size={32}
+                      style={{ alignSelf: 'start' }}
+                    />
+                    <Text flex={1}>{file.name}</Text>
+                  </Group>
+                ) : (
+                  <Card.Section
+                    style={{ cursor: 'pointer' }}
+                    onClick={() =>
+                      handlePreviewClick({
+                        ...file,
+                        patientId: patientId as string,
+                      })
+                    }
+                  >
+                    <MTImage
+                      src={thumbnail}
+                      alt={file.name}
+                      onLoad={() => URL.revokeObjectURL(thumbnail)}
+                    />
+                    {uploadProgress[file.name] < 100 && (
+                      <Overlay
+                        backgroundOpacity={0.6}
+                        zIndex={5}
+                        blur={3}
+                        center
+                      >
+                        <Progress
+                          value={uploadProgress[file.name]}
+                          size="xl"
+                          transitionDuration={500}
+                          w="90%"
+                        />
+                      </Overlay>
+                    )}
+                  </Card.Section>
+                )}
+                <Card.Section p="xs" withBorder>
+                  <Group justify="space-between">
+                    <Text size="xs" c="dimmed">
+                      {file.createdAt ? formatDate(file.createdAt) : 'Just now'}
+                    </Text>
+                    <ActionIcon
+                      variant="subtle"
+                      color="red"
+                      onClick={() => handleDelete(file.id)}
+                    >
+                      <IconTrash style={{ width: rem(16), height: rem(16) }} />
+                    </ActionIcon>
+                  </Group>
+                </Card.Section>
+              </Card>
+            ))}
           </Masonry>
         </ResponsiveMasonry>
       </Paper>
+
+      <FileViewer ref={fileViewerRef} file={selectedFile} />
     </PageView>
   )
 }
