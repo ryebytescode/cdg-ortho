@@ -1,4 +1,12 @@
-import { Button, Center, Stack, Table, Text } from '@mantine/core'
+import {
+  Button,
+  Center,
+  Pagination,
+  Stack,
+  Table,
+  Text,
+  TextInput,
+} from '@mantine/core'
 import { joinNames, truncateString } from '@renderer/helpers/utils'
 import { IconDatabaseOff } from '@tabler/icons-react'
 import {
@@ -49,25 +57,51 @@ const columns = [
   }),
 ]
 
+const ROWS_PER_PAGE = 20
+
 export default function Patients() {
   const navigate = useNavigate()
-  const [patients, setPatients] = useState<Patient[]>()
+  const [patients, setPatients] = useState<{
+    all: Patient[]
+    count: number
+  } | null>(null)
+  const [filter, setFilter] = useState('')
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: ROWS_PER_PAGE,
+  })
+
   const table = useReactTable({
     columns,
-    data: patients ?? fallbackData,
+    data: patients?.all ?? fallbackData,
     getCoreRowModel: getCoreRowModel(),
+    onPaginationChange: setPagination,
+    onGlobalFilterChange: setFilter,
+    manualPagination: true,
+    manualFiltering: true,
+    rowCount: patients?.count,
+    state: {
+      pagination,
+      globalFilter: filter,
+    },
   })
 
   useEffect(() => {
     ;(async () => {
-      const data = await window.api.getPatients()
+      const data = await window.api.getPatients(
+        {
+          index: pagination.pageIndex,
+          size: pagination.pageSize,
+        },
+        filter
+      )
       setPatients(data)
     })()
-  }, [])
+  }, [pagination, filter])
 
   return (
     <PageView title="Patients" backTo="/">
-      {!patients?.length ? (
+      {!patients?.all.length ? (
         <Center py={64}>
           <Stack align="center" justify="center" gap="lg">
             <Stack align="center" justify="center" gap="xs">
@@ -80,41 +114,60 @@ export default function Patients() {
           </Stack>
         </Center>
       ) : (
-        <Table highlightOnHover withTableBorder withColumnBorders>
-          <Table.Thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <Table.Tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <Table.Th key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </Table.Th>
-                ))}
-              </Table.Tr>
-            ))}
-          </Table.Thead>
-          <Table.Tbody>
-            {table.getRowModel().rows.map((row) => (
-              <Table.Tr
-                key={row.id}
-                style={{ cursor: 'pointer' }}
-                onClick={() =>
-                  navigate(`/patient/${row.getVisibleCells()[0].getValue()}`)
-                }
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <Table.Td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </Table.Td>
-                ))}
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+        <>
+          <TextInput
+            label="Search"
+            placeholder="Type here..."
+            onChange={(event) => table.setGlobalFilter(event.target.value)}
+          />
+          <Table highlightOnHover withTableBorder withColumnBorders>
+            <Table.Thead>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <Table.Tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <Table.Th key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </Table.Th>
+                  ))}
+                </Table.Tr>
+              ))}
+            </Table.Thead>
+            <Table.Tbody>
+              {table.getRowModel().rows.map((row) => (
+                <Table.Tr
+                  key={row.id}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() =>
+                    navigate(`/patient/${row.getVisibleCells()[0].getValue()}`)
+                  }
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <Table.Td key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </Table.Td>
+                  ))}
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+          <Center>
+            <Pagination
+              total={table.getPageCount()}
+              value={pagination.pageIndex + 1}
+              onChange={(value) => table.setPageIndex(value - 1)}
+              mt="sm"
+              hideWithOnePage
+            />
+          </Center>
+        </>
       )}
     </PageView>
   )

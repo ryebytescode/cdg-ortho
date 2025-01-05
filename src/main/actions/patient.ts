@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { eq } from 'drizzle-orm'
+import { desc, eq, like, or } from 'drizzle-orm'
 import { ipcMain } from 'electron'
 import Logger from 'electron-log'
 import { UPLOADS_FOLDER } from '../../shared/constants'
@@ -51,9 +51,29 @@ export function registerPatientHandlers() {
     return result.rowsAffected > 0
   })
 
-  ipcMain.handle('get-patients', async () => {
-    return await DB.select().from(patients)
-  })
+  ipcMain.handle(
+    'get-patients',
+    async (_, pagination: Pagination, filter: string) => {
+      const all = await DB.select()
+        .from(patients)
+        .where(
+          or(
+            // LIKE in SQLite is always case-insensitive
+            like(patients.firstName, `%${filter}%`),
+            like(patients.lastName, `%${filter}%`),
+            like(patients.middleName, `%${filter}%`),
+            like(patients.address, `%${filter}%`),
+            like(patients.phone, `%${filter}%`)
+          )
+        )
+        .orderBy(desc(patients.createdAt))
+        .limit(pagination.size)
+        .offset(pagination.index * pagination.size)
+      const count = filter ? all.length : await DB.$count(patients)
+
+      return { all, count }
+    }
+  )
 
   ipcMain.handle('get-patient-profile', async (_, id: string) => {
     return await DB.select()

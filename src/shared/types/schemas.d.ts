@@ -102,3 +102,8 @@ interface FileInfo {
   size: number
   createdAt: string
 }
+
+interface Pagination {
+  index: number
+  size: number
+}

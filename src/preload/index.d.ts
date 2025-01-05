@@ -9,7 +9,10 @@ declare global {
       openFolderSelectorDialog: () => Promise<string | null>
       createPatientRecord: (fields: PatientFields) => Promise<boolean>
       updatePatientRecord: (fields: PatientFields) => Promise<boolean>
-      getPatients: () => Promise<Patient[]>
+      getPatients: (
+        pagination: Pagination,
+        filter: string
+      ) => Promise<{ all: Patient[]; count: number }>
       getPatientProfile: (id: string) => Promise<Patient | null>
       getSettings: () => Promise<AppConfig>
       saveSettings: (
