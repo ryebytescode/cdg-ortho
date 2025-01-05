@@ -56,6 +56,10 @@ export function calcBalance(totalDue: number, totalPaid: number) {
   return totalDue > totalPaid ? totalDue - totalPaid : 0
 }
 
+export function calcPaymentProgress(totalDue: number, totalPaid: number) {
+  return Math.floor((totalPaid / totalDue) * 100)
+}
+
 export function isPaid(totalDue: number, totalPaid: number) {
   return calcBalance(totalDue, totalPaid) === 0
 }

@@ -3,6 +3,7 @@ import {
   Button,
   Group,
   Paper,
+  Progress,
   Stack,
   Table,
   Text,
@@ -13,6 +14,7 @@ import { PageView } from '@renderer/components/PageView'
 import { Payments } from '@renderer/components/Payments'
 import { SettleModal } from '@renderer/components/SettleModal'
 import {
+  calcPaymentProgress,
   formatDate,
   formatMoney,
   getStatus,
@@ -47,6 +49,7 @@ export default function BillView() {
             <Button
               onClick={open}
               disabled={isPaid(bill.totalDue, bill.totalPaid)}
+              color="green"
             >
               Settle bill
             </Button>
@@ -58,7 +61,7 @@ export default function BillView() {
             </Button>
           </Group>
           <Group grow>
-            <Stack>
+            <Stack style={{ alignSelf: 'flex-start' }}>
               <Title order={4}>General</Title>
               <Table
                 variant="vertical"
@@ -145,6 +148,24 @@ export default function BillView() {
                     <Table.Th fw="bold">Balance</Table.Th>
                     <Table.Td ta="right" fw="bold" c="blue">
                       {formatMoney(bill.totalDue - bill.totalPaid)}
+                    </Table.Td>
+                  </Table.Tr>
+                  <Table.Tr>
+                    <Table.Th>Progress</Table.Th>
+                    <Table.Td>
+                      <Group>
+                        <Progress
+                          value={calcPaymentProgress(
+                            bill.totalDue,
+                            bill.totalPaid
+                          )}
+                          flex={1}
+                          size="lg"
+                        />
+                        <Text>
+                          {calcPaymentProgress(bill.totalDue, bill.totalPaid)}%
+                        </Text>
+                      </Group>
                     </Table.Td>
                   </Table.Tr>
                 </Table.Tbody>
