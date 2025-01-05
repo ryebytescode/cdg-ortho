@@ -1,5 +1,5 @@
 {
-	"name": "@cdg/ortho",
+	"name": "cdg-ortho",
 	"version": "1.0.0",
 	"description": "A desktop app for managing CDG orthodontic patients",
 	"main": "./dist/main/index.js",
@@ -13,13 +13,14 @@
 		"typecheck": "yarn typecheck:node && yarn typecheck:web",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
+		"db:create": "yarn db:generate && yarn db:migrate",
 		"db:studio": "drizzle-kit studio",
 		"db:push": "drizzle-kit push",
 		"start": "electron-vite preview --outDir=dist",
 		"dev": "electron-vite dev --watch --outDir=dist",
 		"build": "yarn typecheck && electron-vite build",
 		"package": "electron-vite build --outDir=dist && electron-forge package",
-		"make": "electron-vite build --outDir=dist && electron-forge package",
+		"make": "yarn db:create && electron-vite build --outDir=dist && electron-forge make",
 		"clean": "ts-node ./scripts/remove-generated.ts"
 	},
 	"dependencies": {
