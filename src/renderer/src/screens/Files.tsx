@@ -214,6 +214,7 @@ export default function PhotoManager({ category }: { category: FileCategory }) {
       confirmProps: {
         color: 'red',
       },
+      centered: true,
     })
   }
 
