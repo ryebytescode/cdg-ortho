@@ -10,6 +10,7 @@ import {
   Stack,
   Text,
 } from '@mantine/core'
+import { modals } from '@mantine/modals'
 import { notifications } from '@mantine/notifications'
 import { SettleBillSchema } from '@renderer/helpers/fields'
 import { calcBalance, formatDate, formatMoney } from '@renderer/helpers/utils'
@@ -48,7 +49,7 @@ export function SettleModal({
     resolver: zodResolver(SettleBillSchema),
   })
 
-  const onSubmit: SubmitHandler<SettleFields> = async (fields) => {
+  const settleBill = async (fields: SettleFields) => {
     const result = await window.api.settleBill({
       ...fields,
       billId: bill.id,
@@ -70,6 +71,21 @@ export function SettleModal({
         color: 'red',
       })
     }
+  }
+
+  const onSubmit: SubmitHandler<SettleFields> = async (fields) => {
+    modals.openConfirmModal({
+      title: 'Warning',
+      children: (
+        <Text>Once this bill is settled, the action cannot be reversed.</Text>
+      ),
+      onConfirm: () => settleBill(fields),
+      labels: {
+        confirm: 'Proceed',
+        cancel: 'Cancel',
+      },
+      centered: true,
+    })
   }
 
   return (
