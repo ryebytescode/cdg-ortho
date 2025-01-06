@@ -280,6 +280,7 @@ function ProcedureAmountInput({
         <NumberInput
           label="Procedure Amount"
           min={0}
+          max={1_000_000}
           withAsterisk
           {...field}
           error={error?.message}
@@ -310,6 +311,12 @@ function ItemAmountInput({
     if (amount >= 0) computeTotal()
   }, [amount, computeTotal])
 
+  useEffect(() => {
+    return () => {
+      computeTotal()
+    }
+  }, [computeTotal])
+
   return (
     <Controller
       control={control}
@@ -317,6 +324,7 @@ function ItemAmountInput({
       render={({ field, fieldState: { error } }) => (
         <NumberInput
           min={0}
+          max={1_000_000}
           withAsterisk
           style={{ flex: 1 }}
           {...field}
