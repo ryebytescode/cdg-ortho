@@ -33,7 +33,13 @@ import {
 } from '@renderer/helpers/utils'
 import { FileCategory, documentTypeMap } from '@shared/constants'
 import { IconPhoto, IconTrash, IconUpload, IconX } from '@tabler/icons-react'
-import { type ComponentRef, useEffect, useRef, useState } from 'react'
+import {
+  type ComponentRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import Masonry, { ResponsiveMasonry } from 'react-responsive-masonry'
 import { useParams } from 'react-router'
 
@@ -64,21 +70,25 @@ export default function PhotoManager({ category }: { category: FileCategory }) {
     fileViewerRef.current?.show()
   }
 
+  const fetchFiles = useCallback(async () => {
+    const files = await window.api.getFilesInfo(patientId as string, category)
+    const newPreviews = files.map((file) => ({
+      file,
+      thumbnail: getThumbnailUrl(patientId as string, category, file.name),
+    }))
+    setPreviews(newPreviews)
+    setUploadProgress({})
+  }, [category, patientId])
+
   useEffect(() => {
     loadingOverlayRef.current?.show()
-
-    const fetchFiles = async () => {
-      const files = await window.api.getFilesInfo(patientId as string, category)
-      const newPreviews = files.map((file) => ({
-        file,
-        thumbnail: getThumbnailUrl(patientId as string, category, file.name),
-      }))
-      setPreviews(newPreviews)
-      loadingOverlayRef.current?.hide()
-    }
-
     fetchFiles()
-  }, [patientId, category])
+    loadingOverlayRef.current?.hide()
+  }, [fetchFiles])
+
+  useEffect(() => {
+    if (Object.keys(uploadProgress).length > 0) fetchFiles()
+  }, [uploadProgress, fetchFiles])
 
   useEffect(() => {
     const handleUploadComplete = (_, fileName: string) => {
@@ -114,7 +124,6 @@ export default function PhotoManager({ category }: { category: FileCategory }) {
       window.electron.ipcRenderer.removeAllListeners('upload-error')
 
       setPreviews([])
-      setUploadProgress({})
     }
   }, [])
 
