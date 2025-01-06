@@ -2,13 +2,13 @@ import { MantineProvider } from '@mantine/core'
 import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
 import '@mantine/dropzone/styles.css'
+import { ModalsProvider } from '@mantine/modals'
 import { Notifications } from '@mantine/notifications'
 import '@mantine/notifications/styles.css'
-import { ModalsProvider } from '@mantine/modals'
 import { FileCategory } from '@shared/constants'
 import log from 'electron-log/renderer'
 import { useEffect } from 'react'
-import { BrowserRouter, Route, Routes } from 'react-router'
+import { HashRouter, Route, Routes } from 'react-router'
 import BillForm from './screens/BillForm'
 import BillView from './screens/BillView'
 import PhotoManager from './screens/Files'
@@ -26,7 +26,7 @@ export default function App() {
   return (
     <MantineProvider defaultColorScheme="dark">
       <ModalsProvider>
-        <BrowserRouter>
+        <HashRouter>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/new" element={<PatientForm />} />
@@ -57,7 +57,7 @@ export default function App() {
               element={<PhotoManager category={FileCategory.DOCS} />}
             />
           </Routes>
-        </BrowserRouter>
+        </HashRouter>
       </ModalsProvider>
       <Notifications limit={3} position="top-right" />
     </MantineProvider>
