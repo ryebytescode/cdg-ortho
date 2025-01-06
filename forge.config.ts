@@ -24,7 +24,7 @@ const config: ForgeConfig = {
         appPath: '.',
         title: 'CDG Ortho Installer',
       },
-      ['x64', 'arm64']
+      ['darwin']
     ),
   ],
 }
