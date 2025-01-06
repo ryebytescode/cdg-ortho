@@ -1,6 +1,6 @@
 {
 	"name": "cdg-ortho",
-	"version": "1.0.0",
+	"version": "1.1.6",
 	"description": "A desktop app for managing CDG orthodontic patients",
 	"main": "./dist/main/index.js",
 	"author": "Ryu Rabino (ryebytescode)",
