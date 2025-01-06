@@ -20,6 +20,9 @@ const api = {
   getPatientProfile: async (id: string) => {
     return await ipcRenderer.invoke('get-patient-profile', id)
   },
+  deletePatientRecord: async (id: string) => {
+    return await ipcRenderer.invoke('delete-patient-profile', id)
+  },
   createBill: async (fields: BillFields) => {
     return await ipcRenderer.invoke('create-bill', fields)
   },

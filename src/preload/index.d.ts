@@ -14,6 +14,7 @@ declare global {
         filter: string
       ) => Promise<{ all: Patient[]; count: number }>
       getPatientProfile: (id: string) => Promise<Patient | null>
+      deletePatientRecord: (id: string) => Promise<boolean>
       getSettings: () => Promise<AppConfig>
       saveSettings: (
         settings: AppConfig | ((prevSettings: AppConfig) => AppConfig)

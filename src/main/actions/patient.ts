@@ -90,4 +90,25 @@ export function registerPatientHandlers() {
         return values[0]
       })
   })
+
+  ipcMain.handle('delete-patient-profile', async (_, id: string) => {
+    const settings = await getSettings()
+    const filePath = path.join(settings.appDataFolder, APP_NAME, id)
+
+    try {
+      const deleted =
+        (await fs.rm(filePath, { recursive: true, force: true })) === undefined
+
+      if (!deleted) return false
+
+      const result = await DB.delete(patients).where(eq(patients.id, id))
+
+      if (!result.rowsAffected) return false
+
+      return true
+    } catch (error) {
+      Logger.error(error)
+      return false
+    }
+  })
 }
