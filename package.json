@@ -19,8 +19,8 @@
 		"start": "electron-vite preview --outDir=dist",
 		"dev": "electron-vite dev --watch --outDir=dist",
 		"build": "yarn typecheck && electron-vite build",
-		"package": "electron-vite build --outDir=dist && electron-forge package",
-		"make": "yarn db:create && electron-vite build --outDir=dist && electron-forge make",
+		"package": "yarn clean && yarn db:create && electron-vite build --outDir=dist && electron-forge package",
+		"make": "yarn clean && yarn db:create && electron-vite build --outDir=dist && electron-forge make",
 		"clean": "ts-node ./scripts/remove-generated.ts"
 	},
 	"dependencies": {
