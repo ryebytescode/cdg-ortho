@@ -64,6 +64,10 @@ export function isPaid(totalDue: number, totalPaid: number) {
   return calcBalance(totalDue, totalPaid) === 0
 }
 
+export function pluralize(rootWord: string, count: number) {
+  return `${count} ${count > 1 ? `${rootWord}s` : rootWord}`
+}
+
 export interface ImageDimensions {
   srcWidth: number
   srcHeight: number

@@ -38,7 +38,9 @@ const api = {
   uploadFile: (patientId: string, category: FileCategory, file: FileProps) => {
     ipcRenderer.send('upload-file', patientId, category, file)
   },
-
+  countFiles: async (patientId: string, category: FileCategory) => {
+    return await ipcRenderer.invoke('count-files', patientId, category)
+  },
   getFilesInfo: async (patientId: string, category: FileCategory) => {
     return await ipcRenderer.invoke('get-files-info', patientId, category)
   },

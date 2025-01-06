@@ -116,6 +116,21 @@ export function registerFileSystemHandlers() {
   )
 
   ipcMain.handle(
+    'count-files',
+    async (_, patientId: string, category: FileCategory) => {
+      const fileRecords = await DB.query.files.findMany({
+        where: (filesTable, { eq, and }) =>
+          and(
+            eq(filesTable.patientId, patientId),
+            eq(filesTable.category, category)
+          ),
+      })
+
+      return fileRecords.length
+    }
+  )
+
+  ipcMain.handle(
     'get-files-info',
     async (_, patientId: string, category: FileCategory): Promise<File[]> => {
       const fileRecords = await DB.query.files.findMany({

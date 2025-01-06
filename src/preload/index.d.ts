@@ -32,6 +32,7 @@ declare global {
         patientId: string,
         category: FileCategory
       ) => Promise<File[]>
+      countFiles: (patientId: string, category: FileCategory) => Promise<number>
       deleteFile: (fileId: string) => Promise<boolean>
     }
   }
