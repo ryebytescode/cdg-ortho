@@ -71,23 +71,26 @@ export default function PhotoManager({ category }: { category: FileCategory }) {
   }
 
   const fetchFiles = useCallback(async () => {
+    loadingOverlayRef.current?.show()
+
     const files = await window.api.getFilesInfo(patientId as string, category)
     const newPreviews = files.map((file) => ({
       file,
       thumbnail: getThumbnailUrl(patientId as string, category, file.name),
     }))
+
     setPreviews(newPreviews)
     setUploadProgress({})
+
+    loadingOverlayRef.current?.hide()
   }, [category, patientId])
 
   useEffect(() => {
-    loadingOverlayRef.current?.show()
     fetchFiles()
-    loadingOverlayRef.current?.hide()
   }, [fetchFiles])
 
   useEffect(() => {
-    if (Object.keys(uploadProgress).length > 0) fetchFiles()
+    if (Object.values(uploadProgress).length > 0) fetchFiles()
   }, [uploadProgress, fetchFiles])
 
   useEffect(() => {
