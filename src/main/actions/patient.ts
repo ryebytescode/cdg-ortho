@@ -3,7 +3,7 @@ import path from 'node:path'
 import { desc, eq, like, or } from 'drizzle-orm'
 import { ipcMain } from 'electron'
 import Logger from 'electron-log'
-import { UPLOADS_FOLDER } from '../../shared/constants'
+import { APP_NAME, UPLOADS_FOLDER } from '../../shared/constants'
 import { DB } from '../database/connection'
 import { patients } from '../database/schema'
 import { getSettings } from '../utils'
@@ -28,7 +28,12 @@ export function registerPatientHandlers() {
     // Create a new folder named with a unique ID
     try {
       await fs.mkdir(
-        path.join(settings.appDataFolder, result[0].id, UPLOADS_FOLDER),
+        path.join(
+          settings.appDataFolder,
+          APP_NAME,
+          result[0].id,
+          UPLOADS_FOLDER
+        ),
         { recursive: true }
       )
 

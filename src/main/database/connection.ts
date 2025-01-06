@@ -9,7 +9,7 @@ import * as schema from './schema'
 export function initializeDatabase() {
   const databaseFolder = !app.isPackaged
     ? path.join(app.getAppPath(), BUILD_FOLDER)
-    : app.getPath('userData')
+    : process.resourcesPath
   const databaseClient = createClient({
     url: `file:${path.join(databaseFolder, DB_FILE_NAME)}.db`,
   })
