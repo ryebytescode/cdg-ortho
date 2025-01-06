@@ -122,6 +122,7 @@ export function SettleModal({
               <NumberInput
                 label="Amount"
                 min={0}
+                max={calcBalance(bill.totalDue, bill.totalPaid)}
                 withAsterisk
                 error={error?.message}
                 leftSection={<IconCurrencyPeso size={18} />}
