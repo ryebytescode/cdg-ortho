@@ -5,17 +5,17 @@ import { DB_FILE_NAME } from './src/shared/constants'
 
 const config: ForgeConfig = {
   packagerConfig: {
+    asar: true,
+    osxSign: {},
     extraResource: [`build/${DB_FILE_NAME}.db`],
   },
   makers: [
     new MakerSquirrel(
       {
-        authors: 'Ryu Rabino',
         owners: 'CDG',
-        name: 'CDG Ortho',
         setupIcon: 'build/icon.ico',
       },
-      ['x64', 'x86']
+      ['win32']
     ),
     new MakerDMG(
       {
