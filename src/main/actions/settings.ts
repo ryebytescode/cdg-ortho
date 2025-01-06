@@ -13,7 +13,7 @@ export function registerSettingsHandlers() {
 
     // Copy app data folder if it has changed
     const oldSettings = await getSettings()
-    const oldAppDataFolder = path.join(oldSettings.appDataFolder, APP_NAME)
+    const oldAppDataFolder = oldSettings.appDataFolder
     const newAppDataFolder = path.join(settings.appDataFolder, APP_NAME)
 
     if (oldAppDataFolder !== newAppDataFolder) {
@@ -22,6 +22,7 @@ export function registerSettingsHandlers() {
           recursive: true,
           preserveTimestamps: true,
         })
+        await fs.rm(oldAppDataFolder, { recursive: true, force: true })
 
         // Save settings to file
         await fs.writeFile(settingsFile, JSON.stringify(settings, null, 2), {

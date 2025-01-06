@@ -5,7 +5,7 @@ import { app } from 'electron'
 import { APP_NAME, SETTINGS_FILE } from '../shared/constants'
 
 const defaultSettings: AppConfig = {
-  appDataFolder: path.join(app.getPath('appData'), APP_NAME),
+  appDataFolder: path.join(app.getPath('appData'), APP_NAME, APP_NAME),
 }
 
 const settingsFile = path.join(dirname(app.getPath('exe')), SETTINGS_FILE)

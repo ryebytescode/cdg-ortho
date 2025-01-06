@@ -60,6 +60,7 @@ export function registerFileSystemHandlers() {
           if (allPartsUploaded) {
             const finalDestinationFolder = path.join(
               settings.appDataFolder,
+              APP_NAME,
               patientId,
               UPLOADS_FOLDER,
               category
@@ -147,6 +148,7 @@ export function registerFileSystemHandlers() {
         fileRecords.map(async (fileRecord) => {
           const filePath = path.join(
             settings.appDataFolder,
+            APP_NAME,
             fileRecord.patientId,
             UPLOADS_FOLDER,
             fileRecord.category,
@@ -177,6 +179,7 @@ export function registerFileSystemHandlers() {
     const settings = await getSettings()
     const filePath = path.join(
       settings.appDataFolder,
+      APP_NAME,
       fileRecord.patientId,
       UPLOADS_FOLDER,
       fileRecord.category,
