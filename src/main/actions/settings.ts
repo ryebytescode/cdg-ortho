@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import path, { dirname } from 'node:path'
 import { app, ipcMain } from 'electron'
 import Logger from 'electron-log'
-import { SETTINGS_FILE } from '../../shared/constants'
+import { APP_NAME, SETTINGS_FILE } from '../../shared/constants'
 import { getSettings } from '../utils'
 
 export function registerSettingsHandlers() {
@@ -13,8 +13,8 @@ export function registerSettingsHandlers() {
 
     // Copy app data folder if it has changed
     const oldSettings = await getSettings()
-    const oldAppDataFolder = oldSettings.appDataFolder
-    const newAppDataFolder = settings.appDataFolder
+    const oldAppDataFolder = path.join(oldSettings.appDataFolder, APP_NAME)
+    const newAppDataFolder = path.join(settings.appDataFolder, APP_NAME)
 
     if (oldAppDataFolder !== newAppDataFolder) {
       try {
