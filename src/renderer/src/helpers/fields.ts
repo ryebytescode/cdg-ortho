@@ -81,7 +81,8 @@ export const AddBillSchema: ZodType<Omit<BillFields, 'id' | 'patientId'>> =
         required_error: 'This is required.',
         invalid_type_error: 'Should be a number',
       })
-      .min(50, 'Enter at least PHP 50.00'),
+      .min(50, 'Enter at least PHP 50.00')
+      .max(1_000_000, 'Max value exceeded'),
     totalAmount: z.number({
       required_error: 'This is required.',
       invalid_type_error: 'Should be a number',
@@ -100,7 +101,8 @@ export const AddBillSchema: ZodType<Omit<BillFields, 'id' | 'patientId'>> =
             required_error: 'This is required.',
             invalid_type_error: 'Should be a number',
           })
-          .min(50, 'Enter at least PHP 50.00'),
+          .min(50, 'Enter at least PHP 50.00')
+          .max(1_000_000, 'Max value exceeded'),
       })
     ),
   })
