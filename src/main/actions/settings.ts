@@ -1,26 +1,27 @@
 import fs from 'node:fs/promises'
-import path, { dirname } from 'node:path'
+import path from 'node:path'
 import { app, ipcMain } from 'electron'
 import Logger from 'electron-log'
-import { APP_NAME, SETTINGS_FILE } from '../../shared/constants'
+import { SETTINGS_FILE } from '../../shared/constants'
 import { getSettings } from '../utils'
 
 export function registerSettingsHandlers() {
   ipcMain.handle('get-settings', getSettings)
 
   ipcMain.handle('save-settings', async (_, settings: AppConfig) => {
-    const settingsFile = path.join(dirname(app.getPath('exe')), SETTINGS_FILE)
+    const settingsFile = path.join(app.getPath('userData'), SETTINGS_FILE)
 
     // Copy app data folder if it has changed
     const oldSettings = await getSettings()
     const oldAppDataFolder = oldSettings.appDataFolder
-    const newAppDataFolder = path.join(settings.appDataFolder, APP_NAME)
+    const newAppDataFolder = settings.appDataFolder
 
     if (oldAppDataFolder !== newAppDataFolder) {
       try {
         await fs.cp(oldAppDataFolder, newAppDataFolder, {
           recursive: true,
           preserveTimestamps: true,
+          force: true,
         })
         await fs.rm(oldAppDataFolder, { recursive: true, force: true })
 

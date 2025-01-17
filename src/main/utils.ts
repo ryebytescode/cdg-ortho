@@ -1,14 +1,14 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import fs from 'node:fs/promises'
-import path, { dirname } from 'node:path'
+import path from 'node:path'
 import { app } from 'electron'
-import { APP_NAME, SETTINGS_FILE } from '../shared/constants'
+import { SETTINGS_FILE } from '../shared/constants'
 
 const defaultSettings: AppConfig = {
-  appDataFolder: path.join(app.getPath('appData'), APP_NAME, APP_NAME),
+  appDataFolder: path.join(app.getPath('userData'), 'Records'),
 }
 
-const settingsFile = path.join(dirname(app.getPath('exe')), SETTINGS_FILE)
+const settingsFile = path.join(app.getPath('userData'), SETTINGS_FILE)
 
 export async function getSettings(): Promise<AppConfig> {
   try {

@@ -8,7 +8,7 @@ export function initializeLogger() {
   log.transports.file.maxSize = 5242880 // 5 mb
   log.transports.file.resolvePathFn = (vars) =>
     path.join(
-      dirname(app.getPath('exe')),
+      app.getPath('userData'),
       LOGS_FOLDER,
       // biome-ignore lint/style/noNonNullAssertion:
       vars.fileName!

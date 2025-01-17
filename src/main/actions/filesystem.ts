@@ -6,7 +6,6 @@ import { eq } from 'drizzle-orm'
 import { BrowserWindow, dialog, ipcMain } from 'electron'
 import Logger from 'electron-log'
 import {
-  APP_NAME,
   FileCategory,
   TEMP_FOLDER,
   UPLOADS_FOLDER,
@@ -34,11 +33,7 @@ export function registerFileSystemHandlers() {
     async (_, patientId: string, category: FileCategory, file: FileProps) => {
       const mainWindow = BrowserWindow.getFocusedWindow()
       const settings = await getSettings()
-      const tempFolder = path.join(
-        settings.appDataFolder,
-        APP_NAME,
-        TEMP_FOLDER
-      )
+      const tempFolder = path.join(settings.appDataFolder, TEMP_FOLDER)
       const destination = path.join(
         tempFolder,
         `${file.name}.${file.data.position}.part`
@@ -60,7 +55,6 @@ export function registerFileSystemHandlers() {
           if (allPartsUploaded) {
             const finalDestinationFolder = path.join(
               settings.appDataFolder,
-              APP_NAME,
               patientId,
               UPLOADS_FOLDER,
               category
@@ -148,7 +142,6 @@ export function registerFileSystemHandlers() {
         fileRecords.map(async (fileRecord) => {
           const filePath = path.join(
             settings.appDataFolder,
-            APP_NAME,
             fileRecord.patientId,
             UPLOADS_FOLDER,
             fileRecord.category,
@@ -179,7 +172,6 @@ export function registerFileSystemHandlers() {
     const settings = await getSettings()
     const filePath = path.join(
       settings.appDataFolder,
-      APP_NAME,
       fileRecord.patientId,
       UPLOADS_FOLDER,
       fileRecord.category,
@@ -198,7 +190,7 @@ export function registerFileSystemHandlers() {
 
   ipcMain.handle('clear-temp-folder', async () => {
     const settings = await getSettings()
-    const tempFolder = path.join(settings.appDataFolder, APP_NAME, TEMP_FOLDER)
+    const tempFolder = path.join(settings.appDataFolder, TEMP_FOLDER)
 
     try {
       const files = await fs.readdir(tempFolder)

@@ -1,7 +1,6 @@
 import path from 'node:path'
 import express from 'express'
 import {
-  APP_NAME,
   FILE_SERVER_PORT,
   FileCategory,
   UPLOADS_FOLDER,
@@ -20,7 +19,6 @@ app.get('/files/:patientId/:category/:fileName', async (req, res) => {
     const settings = await getSettings()
     const filePath = path.join(
       settings.appDataFolder,
-      APP_NAME,
       patientId,
       UPLOADS_FOLDER,
       category,
@@ -71,7 +69,6 @@ app.get('/files/:patientId/:category/:fileName', async (req, res) => {
     const settings = await getSettings()
     const filePath = path.join(
       settings.appDataFolder,
-      APP_NAME,
       patientId,
       UPLOADS_FOLDER,
       category,
@@ -89,7 +86,6 @@ app.get('/files/:patientId/:category/:fileName', async (req, res) => {
     const settings = await getSettings()
     const filePath = path.join(
       settings.appDataFolder,
-      APP_NAME,
       patientId,
       UPLOADS_FOLDER,
       category,
