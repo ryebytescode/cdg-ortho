@@ -23,6 +23,7 @@ const config: ForgeConfig = {
         icon: 'build/icon.icns',
         appPath: '.',
         title: 'CDG Ortho Installer',
+        overwrite: true,
       },
       ['darwin']
     ),
