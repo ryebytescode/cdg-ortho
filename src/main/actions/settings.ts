@@ -18,12 +18,12 @@ export function registerSettingsHandlers() {
 
     if (oldAppDataFolder !== newAppDataFolder) {
       try {
-        await fs.cp(oldAppDataFolder, newAppDataFolder, {
-          recursive: true,
-          preserveTimestamps: true,
-          force: true,
-        })
-        await fs.rm(oldAppDataFolder, { recursive: true, force: true })
+        // await fs.cp(oldAppDataFolder, newAppDataFolder, {
+        //   recursive: true,
+        //   preserveTimestamps: true,
+        //   force: true,
+        // })
+        // await fs.rm(oldAppDataFolder, { recursive: true, force: true })
 
         // Save settings to file
         await fs.writeFile(settingsFile, JSON.stringify(settings, null, 2), {
