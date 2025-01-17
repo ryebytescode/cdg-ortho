@@ -8,6 +8,9 @@ const config: ForgeConfig = {
     asar: true,
     osxSign: {},
     extraResource: [`build/${DB_FILE_NAME}.db`],
+    executableName: 'CDG Ortho',
+    overwrite: true,
+    icon: 'build/icon',
   },
   makers: [
     new MakerSquirrel(
